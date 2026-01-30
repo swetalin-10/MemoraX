@@ -1,5 +1,5 @@
 const errorHandler = (err, req, res, next) => {
-  let statusCode = err.statusCode || 500;
+  let statusCode = err.statusCode || err.status || 500;
   let message = err.message || "Server Error";
 
   // Mongoose bad ObjectId
@@ -40,18 +40,13 @@ const errorHandler = (err, req, res, next) => {
     message = "Token expired";
   }
 
-  console.log("Error:", {
-    message: err.message,
-    stack: process.env.NODE_ENV === "development" ? err.stack : undefined,
-  });
+  console.error("Error:", err.message);
 
   res.status(statusCode).json({
     success: false,
     error: message,
     statusCode,
-    ...errorHandler(
-      process.env.NODE_ENV === "development" && { stack: err.stack }
-    ),
+    ...(process.env.NODE_ENV === "development" && { stack: err.stack }),
   });
 };
 
