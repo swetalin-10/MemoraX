@@ -1,14 +1,14 @@
-// import Document from "../models/Document.js";
-// import Flashcard from "../models/Flashcard.js";
-// import Quiz from "../models/Quiz.js";
+// import Document from "../models/documentModel.js";
+// import Flashcard from "../models/flashcardModel.js";
+// import Quiz from "../models/quizModel.js";
 // import { extractTextFromPDF } from "../utils/pdfParser.js";
 // import { chunkText } from "../utils/textChunker.js";
 // import fs from "fs/promises";
 // import mongoose from "mongoose";
 
-import Document from "../models/Document.js";
-import Flashcard from "../models/Flashcard.js";
-import Quiz from "../models/Quiz.js";
+import Document from "../models/documentModel.js";
+import Flashcard from "../models/flashcardModel.js";
+import Quiz from "../models/quizModel.js";
 import { extractTextFromPDF } from "../utils/pdfParser.js";
 import { chunkText } from "../utils/textChunker.js";
 import fs from "fs/promises";

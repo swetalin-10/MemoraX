@@ -1,6 +1,6 @@
-import Document from "../models/Document.js";
-import Quiz from "../models/Quiz.js";
-import Flashcard from "../models/Flashcard.js";
+import Document from "../models/documentModel.js";
+import Quiz from "../models/quizModel.js";
+import Flashcard from "../models/flashcardModel.js";
 
 // @desc    Get user learning statistics
 // @route   GET /api/progress/dashboard
