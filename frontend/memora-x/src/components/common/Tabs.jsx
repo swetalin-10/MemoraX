@@ -3,6 +3,7 @@ import React from "react";
 const Tabs = ({ tabs, activeTab, setActiveTab }) => {
   return (
     <div className="w-full">
+      {/* Tabs Header */}
       <div className="relative border-b-2 border-slate-100">
         <nav className="flex gap-2">
           {tabs.map((tab) => (
@@ -16,23 +17,33 @@ const Tabs = ({ tabs, activeTab, setActiveTab }) => {
               }`}
             >
               <span className="relative z-10">{tab.label}</span>
-              {activeTab === tab.name && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-primary to-[#1E3EDC] rounded-full shadow-lg shadow-primary/30" />}
-              {activeTab === tab.name && <div className="absolute inset-0 bg-gradient-to-b from-primary to-transparent rounded-t-xl -z-10" />}
+
+              {activeTab === tab.name && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-primary to-[#1E3EDC] rounded-full shadow-lg shadow-primary/30" />
+              )}
+
+              {activeTab === tab.name && (
+                <div className="absolute inset-0 bg-gradient-to-b from-primary to-transparent rounded-t-xl -z-10" />
+              )}
             </button>
           ))}
         </nav>
       </div>
-      <div className="py-6">
-        {tabs.map((tab) => {
-          if (tab.name === activeTab) {
-            return (
-              <div key={tab.name} className="animate-in fade-in duration-300">
-                {tab.content}
-              </div>
-            );
-          }
-          return null;
-        })}
+
+      {/* Tabs Content */}
+      <div className="py-6 w-full overflow-visible">
+        {tabs.map((tab) => (
+          <div
+            key={tab.name}
+            className={`w-full ${
+              activeTab === tab.name
+                ? "block animate-in fade-in duration-300"
+                : "hidden"
+            }`}
+          >
+            {tab.content}
+          </div>
+        ))}
       </div>
     </div>
   );
