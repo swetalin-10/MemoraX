@@ -25,9 +25,9 @@ if (!process.env.GEMINI_API_KEY) {
 //     Q: [Clear, specific question]
 //     A: [Concise, accurate answer]
 //     D: [Difficulty level: easy, medium or hard]
-    
+
 //     Separate each flashcard with "---"
-    
+
 //     Text:
 //     ${text.substring(0, 15000)}
 //     `;
@@ -243,30 +243,105 @@ export const generateSummary = async (text) => {
  * @returns {Promise<string>} - AI's response
  */
 
+// export const chatWithContext = async (question, chunks) => {
+//   const context = chunks
+//     .map((c, i) => `[Chunk ${i + 1}]\n${c.content}`)
+//     .join("\n\n");
+
+//   // console.log("context____", context);
+
+//   const prompt = `Based on the following context from a document, Analyse the context and answer the user's question. If the answer is not in the context, say so.
+
+//     Context:
+//     ${context}
+
+//     Question:
+//     ${question}
+
+//     Answer:`;
+
+//   try {
+//     const response = await ai.models.generateContent({
+//       model: "gemini-2.5-flash-lite",
+//       contents: prompt,
+//     });
+
+//     const generatedText = response.text;
+//     return generatedText;
+//   } catch (error) {
+//     console.error("Gemini API Error:", error);
+//     throw new Error("Failed to process chat request");
+//   }
+// };
+// export const chatWithContext = async (question, chunks) => {
+//   try {
+//     if (!chunks || chunks.length === 0) {
+//       return "I couldn't find relevant information in the document to answer this question.";
+//     }
+
+//     const context = chunks
+//       .map((c, i) => `[Chunk ${i + 1}]\n${c.content || c.text || ""}`)
+//       .join("\n\n");
+
+//     const prompt = `Based on the following document context, answer the user's question.
+
+// If the answer cannot be found in the context, say that the information is not available.
+
+// Context:
+// ${context}
+
+// Question:
+// ${question}
+
+// Answer:`;
+
+//     const response = await ai.models.generateContent({
+//       model: "gemini-2.5-flash-lite",
+//       contents: prompt,
+//     });
+
+//     const generatedText =
+//       response?.candidates?.[0]?.content?.parts?.[0]?.text ||
+//       "Sorry, I couldn't generate an answer.";
+
+//     return generatedText;
+//   } catch (error) {
+//     console.error("Gemini Chat Error:", error);
+//     throw new Error("Failed to process chat request");
+//   }
+// };
+
 export const chatWithContext = async (question, chunks) => {
-  const context = chunks
-    .map((c, i) => `[Chunk ${i + 1}]\n${c.content}`)
-    .join("\n\n");
-
-  // console.log("context____", context);
-
-  const prompt = `Based on the following context from a document, Analyse the context and answer the user's question. If the answer is not in the context, say so.
-    
-    Context:
-    ${context}
-    
-    Question:
-    ${question}
-    
-    Answer:`;
-
   try {
+    if (!Array.isArray(chunks) || chunks.length === 0) {
+      return "I couldn't find relevant information in the document to answer that question.";
+    }
+
+    const context = chunks
+      .map((c, i) => `[Chunk ${i + 1}]\n${c?.content || ""}`)
+      .join("\n\n");
+
+    const prompt = `Based on the following context from a document, answer the user's question.
+
+If the answer is not present in the context, say that the information is not available.
+
+Context:
+${context}
+
+Question:
+${question}
+
+Answer:`;
+
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash-lite",
       contents: prompt,
     });
 
-    const generatedText = response.text;
+    const generatedText =
+      response?.candidates?.[0]?.content?.parts?.[0]?.text ||
+      "Sorry, I couldn't generate an answer.";
+
     return generatedText;
   } catch (error) {
     console.error("Gemini API Error:", error);
