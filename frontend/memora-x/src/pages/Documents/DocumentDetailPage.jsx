@@ -103,7 +103,7 @@ const DocumentDetailPage = () => {
   };
 
   const renderFlashcardsTab = () => {
-    return "renderFlashcardsTab"
+    return <FlashcardManager documentId={id} />
   };
 
   const renderQuizzesTab = () => {
