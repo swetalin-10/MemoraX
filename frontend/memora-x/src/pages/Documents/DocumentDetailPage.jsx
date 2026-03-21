@@ -8,7 +8,7 @@ import PageHeader from "../../components/common/PageHeader";
 import Tabs from "../../components/common/Tabs";
 import ChatInterface from "../../components/chat/ChatInterface";
 import AIActions from "../../components/ai/AIActions";
-import FlashCardManager from "../../components/flashcards/FlashcardManager"; // ✅ FIXED
+import FlashCardManager from "../../components/flashcards/FlashCardManager";
 
 const DocumentDetailPage = () => {
   const { id } = useParams();
