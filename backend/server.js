@@ -26,16 +26,25 @@ const app = express();
 connectDB();
 
 
-app.use(
-  cors({
-    origin: [
-      "http://localhost:5173",
-      "https://memorax-x-8xq4.vercel.app"
-    ],
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"]
-  })
-);
+// app.use(
+//   cors({
+//     origin: [
+//       "http://localhost:5173",
+//       "https://memorax-x-8xq4.vercel.app"
+//     ],
+//     methods: ["GET", "POST", "PUT", "DELETE"],
+//     allowedHeaders: ["Content-Type", "Authorization"]
+//   })
+// );
+
+app.use(cors({
+  origin: "*"
+}));
+
+app.options("*", cors());
+
+console.log("CORS ENABLED ✅");
+console.log("AUTH ROUTES LOADED ✅");
 
 
 // Body parser
