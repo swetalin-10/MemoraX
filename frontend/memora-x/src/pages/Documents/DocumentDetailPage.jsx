@@ -32,8 +32,24 @@ const DocumentDetailPage = () => {
     fetchDocumentDetails();
   }, [id]);
 
+  // const getPdfUrl = () => {
+  //   if (!document?.filePath) return null;
+
+  //   if (
+  //     document.filePath.startsWith("http://") ||
+  //     document.filePath.startsWith("https://")
+  //   ) {
+  //     return document.filePath;
+  //   }
+
+  //   const baseUrl =
+  //     import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+
+  //   return `${baseUrl}/uploads/${document.filePath}`;
+  // };
+
   const getPdfUrl = () => {
-    if (!document?.filePath) return null;
+    if (!document || !document.filePath) return null;
 
     if (
       document.filePath.startsWith("http://") ||
@@ -54,7 +70,7 @@ const DocumentDetailPage = () => {
       return <div className="text-center p-8">PDF not available.</div>;
     }
 
-    const pdfUrl = getPdfUrl();
+    const pdfUrl = document ? getPdfUrl() : null;
 
     return (
       <div className="bg-white border border-gray-300 rounded-lg overflow-hidden shadow-sm">
@@ -72,11 +88,15 @@ const DocumentDetailPage = () => {
             Open in new tab
           </a>
         </div>
-        <iframe
-          src={pdfUrl}
-          className="w-full h-[70vh] bg-white"
-          title="PDF Viewer"
-        />
+        {pdfUrl ? (
+          <iframe
+            src={pdfUrl}
+            className="w-full h-[70vh] bg-white"
+            title="PDF Viewer"
+          />
+        ) : (
+          <div className="text-center p-8">PDF not available</div>
+        )}
       </div>
     );
   };
