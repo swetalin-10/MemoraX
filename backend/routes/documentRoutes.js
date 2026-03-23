@@ -15,9 +15,14 @@ router.use(protect);
 
 router.post(
   "/upload",
+  (req, res, next) => {
+    console.log("ROUTE HIT 🚀");
+    next();
+  },
   upload.single("file"),
   uploadDocument
 );
+
 router.get('/', getDocuments);
 router.get('/:id', getDocument);
 // router.put('/:id', updateDocument);

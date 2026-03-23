@@ -15,15 +15,102 @@ import fs from "fs/promises";
 import mongoose from "mongoose";
 import path from "path";
 import { fileURLToPath } from "url";
+import cloudinary from "../config/cloudinary.js";
+import streamifier from "streamifier";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+const uploadFromBuffer = (buffer) => {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      {
+        resource_type: "raw",
+        folder: "documents",
+      },
+      (error, result) => {
+        if (error) {
+          console.error("CLOUDINARY ERROR:", error);
+          reject(error);
+        } else {
+          console.log("CLOUDINARY SUCCESS:", result.secure_url);
+          resolve(result);
+        }
+      }
+    );
+
+    streamifier.createReadStream(buffer).pipe(stream);
+  });
+};
+
 // @desc    Upload PDF document
 // @route   POST /api/documents/upload
 // @access  Private
+// export const uploadDocument = async (req, res, next) => {
+//   try {
+//     // 1️⃣ File validation
+//     if (!req.file) {
+//       return res.status(400).json({
+//         success: false,
+//         error: "Please upload a PDF file",
+//         statusCode: 400,
+//       });
+//     }
+
+//     const { title } = req.body;
+
+//     // 2️⃣ Title validation
+//     if (!title) {
+//       await fs.unlink(req.file.path);
+//       return res.status(400).json({
+//         success: false,
+//         error: "Please provide a document title",
+//         statusCode: 400,
+//       });
+//     }
+
+//     // 3️⃣ Build public file URL (IMPORTANT FIX)
+//     // const baseUrl = `${req.protocol}://${req.get("host")}`;
+//     // const fileUrl = `${baseUrl}/uploads/documents/${req.file.filename}`;
+//     const fileUrl = `/uploads/documents/${req.file.filename}`;
+//     console.log("PDF URL:", fileUrl);
+
+//     // 4️⃣ Create document entry
+//     const document = await Document.create({
+//       userId: req.user.id,
+//       title,
+//       content: "PROCESSING", // required by schema
+//       fileName: req.file.originalname,
+//       filePath: fileUrl,
+//       fileSize: req.file.size,
+//       extractedText: "",
+//       chunks: [],
+//       status: "processing",
+//     });
+
+//     // 5️⃣ Process PDF in background
+//     processPDF(document._id, req.file.path).catch((err) => {
+//       console.error("PDF processing error:", err);
+//     });
+
+//     // 6️⃣ Response (MATCHES TUTORIAL STYLE)
+//     res.status(201).json({
+//       success: true,
+//       data: document,
+//       message: "Document uploaded successfully. Processing in progress...",
+//     });
+//   } catch (error) {
+//     // Cleanup on error
+//     if (req.file) {
+//       await fs.unlink(req.file.path).catch(() => {});
+//     }
+//     next(error);
+//   }
+// };
 export const uploadDocument = async (req, res, next) => {
   try {
+    console.log("UPLOAD HIT ✅");
+
     // 1️⃣ File validation
     if (!req.file) {
       return res.status(400).json({
@@ -37,7 +124,6 @@ export const uploadDocument = async (req, res, next) => {
 
     // 2️⃣ Title validation
     if (!title) {
-      await fs.unlink(req.file.path);
       return res.status(400).json({
         success: false,
         error: "Please provide a document title",
@@ -45,41 +131,40 @@ export const uploadDocument = async (req, res, next) => {
       });
     }
 
-    // 3️⃣ Build public file URL (IMPORTANT FIX)
-    // const baseUrl = `${req.protocol}://${req.get("host")}`;
-    // const fileUrl = `${baseUrl}/uploads/documents/${req.file.filename}`;
-    const fileUrl = `/uploads/documents/${req.file.filename}`;
-    console.log("PDF URL:", fileUrl);
+    const result = await uploadFromBuffer(req.file.buffer);
 
-    // 4️⃣ Create document entry
+    const fileUrl = result.secure_url;
+    const localPath = req.file.buffer;
+
+    console.log("CLOUD URL:", fileUrl);
+    console.log("LOCAL PATH:", localPath);
+
+    // 4 Create document
     const document = await Document.create({
       userId: req.user.id,
       title,
-      content: "PROCESSING", // required by schema
+      content: "PROCESSING",
       fileName: req.file.originalname,
-      filePath: fileUrl,
+      filePath: fileUrl, // ✅ CLOUD URL
       fileSize: req.file.size,
       extractedText: "",
       chunks: [],
       status: "processing",
     });
 
-    // 5️⃣ Process PDF in background
-    processPDF(document._id, req.file.path).catch((err) => {
+    // 5 Process PDF (LOCAL FILE ONLY)
+    processPDF(document._id, req.file.buffer).catch((err) => {
       console.error("PDF processing error:", err);
     });
 
-    // 6️⃣ Response (MATCHES TUTORIAL STYLE)
+    // 6️⃣ Response
     res.status(201).json({
       success: true,
       data: document,
       message: "Document uploaded successfully. Processing in progress...",
     });
   } catch (error) {
-    // Cleanup on error
-    if (req.file) {
-      await fs.unlink(req.file.path).catch(() => {});
-    }
+    console.error("UPLOAD ERROR:", error);
     next(error);
   }
 };
