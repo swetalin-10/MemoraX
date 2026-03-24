@@ -107,6 +107,9 @@ const DocumentDetailPage = () => {
     return <FlashCardManager documentId={id} />; // ✅ FIXED
   };
 
+  const renderQuizzesTab = () => {};
+  return <QuizManager documentId={id} />;
+
   const tabs = [
     { name: "Content", label: "Content", content: renderContent() },
     { name: "Chat", label: "Chat", content: <ChatInterface /> },
