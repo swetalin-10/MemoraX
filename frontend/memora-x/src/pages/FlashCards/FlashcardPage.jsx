@@ -22,7 +22,8 @@ import Flashcard from "../../components/flashcards/Flashcard";
 
 const FlashcardPage = () => {
   const { id: documentId } = useParams();
-  const [flashcardSets, setFlashcardSets] = useState([]);
+
+  const [flashcardSet, setFlashcardSet] = useState(null);
   const [flashcards, setFlashcards] = useState([]);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
@@ -33,12 +34,11 @@ const FlashcardPage = () => {
   const fetchFlashcards = async () => {
     setLoading(true);
     try {
-      const response = await flashcardService.getFlashcardsForDocument(
-        documentId
-      );
+      const response = await flashcardService.getFlashcardsForDocument(documentId);
 
-      setFlashcardSets(response.data[0]);
-      setFlashcards(response.data[0]?.cards || []);
+      const set = response.data?.[0];
+      setFlashcardSet(set);
+      setFlashcards(set?.cards || []);
     } catch (error) {
       toast.error("Failed to fetch flashcards.");
       console.error(error);
@@ -50,7 +50,6 @@ const FlashcardPage = () => {
   useEffect(() => {
     fetchFlashcards();
   }, [documentId]);
-
 
   // Generate flashcards
   const handleGenerateFlashcards = async () => {
@@ -69,63 +68,55 @@ const FlashcardPage = () => {
   // Navigation
   const handleNextCard = () => {
     handleReview(currentCardIndex);
-    setCurrentCardIndex((prevIndex) => (prevIndex + 1) % flashcards.length);
+    setCurrentCardIndex((prev) => (prev + 1) % flashcards.length);
   };
 
   const handlePrevCard = () => {
     handleReview(currentCardIndex);
     setCurrentCardIndex(
-      (prevIndex) =>
-        (prevIndex - 1 + flashcards.length) % flashcards.length
+      (prev) => (prev - 1 + flashcards.length) % flashcards.length
     );
   };
 
-  // Review card
+  // Review
   const handleReview = async (index) => {
-    const currentCard = flashcards[currentCardIndex];
+    const currentCard = flashcards[index];
     if (!currentCard) return;
 
     try {
-      await flashcardService.reviewFlashcard(currentCard._id,index);
-      toast.success("Flashcard reviewed!");
-    } catch (error) {
+      await flashcardService.reviewFlashcard(currentCard._id, index);
+    } catch {
       toast.error("Failed to review flashcard.");
     }
   };
 
-  // Toggle star
+  // Star toggle
   const handleToggleStar = async (cardId) => {
     try {
       await flashcardService.toggleStar(cardId);
 
-      setFlashcards((prevFlashcards) =>
-        prevFlashcards.map((card) =>
+      setFlashcards((prev) =>
+        prev.map((card) =>
           card._id === cardId
             ? { ...card, isStarred: !card.isStarred }
             : card
         )
       );
-
-      toast.success("Flashcard starred status updated!");
-    } catch (error) {
-      toast.error("Failed to update star status.");
+    } catch {
+      toast.error("Failed to update star.");
     }
   };
 
-  // Delete set
+  // Delete
   const handleDeleteFlashcardSet = async () => {
     setDeleting(true);
     try {
-      await flashcardService.deleteFlashcardSet(
-        flashcardSets._id
-      );
-      toast.success("Flashcard set deleted successfully!");
+      await flashcardService.deleteFlashcardSet(flashcardSet._id);
+      toast.success("Deleted successfully!");
       setIsDeleteModalOpen(false);
       fetchFlashcards();
     } catch (error) {
-      toast.error(
-        error.message || "Failed to delete flashcard set."
-      );
+      toast.error(error.message || "Delete failed");
     } finally {
       setDeleting(false);
     }
@@ -133,15 +124,13 @@ const FlashcardPage = () => {
 
   // Render content
   const renderFlashcardContent = () => {
-    if (loading) {
-      return <Spinner />;
-    }
+    if (loading) return <Spinner />;
 
     if (flashcards.length === 0) {
       return (
         <EmptyState
           title="No Flashcards Yet"
-          description="Generate flashcards from your document to start learning."
+          description="Generate flashcards to start learning."
         />
       );
     }
@@ -158,23 +147,15 @@ const FlashcardPage = () => {
         </div>
 
         <div className="flex items-center gap-4">
-          <Button
-            onClick={handlePrevCard}
-            variant="secondary"
-            disabled={flashcards.length <= 1}
-          >
+          <Button onClick={handlePrevCard} variant="secondary">
             <ChevronLeft size={16} /> Previous
           </Button>
 
-          <span>
+          <span className="text-sm font-medium">
             {currentCardIndex + 1} / {flashcards.length}
           </span>
 
-          <Button
-            onClick={handleNextCard}
-            variant="secondary"
-            disabled={flashcards.length <= 1}
-          >
+          <Button onClick={handleNextCard} variant="secondary">
             Next <ChevronRight size={16} />
           </Button>
         </div>
@@ -182,80 +163,83 @@ const FlashcardPage = () => {
     );
   };
 
-return (
-  <div>
-    <div className="">
+  return (
+    <div className="max-w-4xl mx-auto space-y-6">
+
+      {/* Back */}
       <Link
         to={`/documents/${documentId}`}
-        className=""
+        className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900"
       >
         <ArrowLeft size={16} />
         Back to Document
       </Link>
-    </div>
 
-    <PageHeader title="Flashcards">
-      <div className="">
-        {!loading &&
-          flashcards.length > 0 && (
-            <>
-            <Button
-              onClick={() => setIsDeleteModalOpen(true)}
-              disabled={deleting}
-            >
-              <Trash2 size={16} /> Delete Set
-            </Button>
-            </>
-          ) : (
-            <Button onClick={handleGenerateFlashcards} disabled={generating}>
-             {generating ? (
-              <Spinner />
+      {/* Header */}
+      <PageHeader title="Flashcards">
+        <div>
+          {!loading ? (
+            flashcards.length > 0 ? (
+              <Button
+                onClick={() => setIsDeleteModalOpen(true)}
+                className="bg-red-500 hover:bg-red-600 text-white"
+              >
+                <Trash2 size={16} /> Delete Set
+              </Button>
             ) : (
-              <>
-              <Plus size={16} /> Generate Flashcards
-             </>
-            )}
-           </Button>
-          ))}
-      </div>
-    </PageHeader>
+              <Button
+                onClick={handleGenerateFlashcards}
+                disabled={generating}
+                className="bg-indigo-500 hover:bg-indigo-600 text-white"
+              >
+                {generating ? (
+                  <span className="flex items-center gap-2">
+                    <Spinner /> Generating...
+                  </span>
+                ) : (
+                  <>
+                    <Plus size={16} /> Generate Flashcards
+                  </>
+                )}
+              </Button>
+            )
+          ) : null}
+        </div>
+      </PageHeader>
 
-
+      {/* Content */}
       {renderFlashcardContent()}
 
-      {/* Delete Modal */}
+      {/* Modal */}
       <Modal
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
         title="Delete Flashcard Set"
       >
         <div className="p-4">
-          <p className="text-lg font-semibold mb-4">
-            Are you sure you want to delete the flashcard set.
+          <p className="mb-4 font-medium">
+            Are you sure you want to delete this set?
           </p>
 
-          <div className="flex justify-end gap-2 mt-4">
+          <div className="flex justify-end gap-2">
             <Button
-              type="button"
               variant="secondary"
               onClick={() => setIsDeleteModalOpen(false)}
-              disabled={deleting}
             >
               Cancel
             </Button>
 
             <Button
               onClick={handleDeleteFlashcardSet}
-              disabled={deleting}
-              className=""
-              >
+              className="bg-red-500 hover:bg-red-600 text-white"
+            >
               {deleting ? "Deleting..." : "Delete"}
-              </Button>
+            </Button>
           </div>
         </div>
       </Modal>
     </div>
-    )
-  }
+  );
+};
 
 export default FlashcardPage;
