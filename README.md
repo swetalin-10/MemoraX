@@ -1,107 +1,123 @@
 # MemoraX
 
-AI-Powered Smart Study Assistant that transforms documents into flashcards, quizzes, summaries, and contextual AI chat.
+AI-powered smart study assistant that transforms documents into flashcards, quizzes, summaries, analytics, and contextual AI chat.
 
 ---
 
 ## Overview
 
-MemoraX is an intelligent learning platform that allows users to:
+MemoraX is a full-stack AI learning platform that helps students study smarter by converting raw study material into structured, interactive learning tools.
 
-- Upload documents
-- Generate AI-powered flashcards
-- Create quizzes automatically
-- Generate structured summaries
-- Chat contextually with their document
-- Track learning progress
-
-Built using a modern full-stack architecture and powered by Google Gemini AI.
+Users can upload documents and instantly generate:
+- Flashcards
+- Quizzes
+- Summaries
+- AI-powered chat responses
+- Performance analytics dashboard
 
 ---
 
 ## Features
 
-### Authentication
-- User registration and login
+### 🔐 Authentication & User Management
 - JWT-based authentication
+- Login / Register
 - Protected routes
 - Profile management
-
-### Document Processing
-- Upload PDF documents
-- Automatic text extraction
-- Intelligent text chunking
-- MongoDB storage
-- Status tracking (processing / ready)
-
-### AI Flashcards
-- Generate customizable number of flashcards
-- Difficulty tagging (easy / medium / hard)
-- Star / unstar flashcards
-- Review tracking
-- Delete functionality
-
-### AI Quiz Generator
-- Auto-generated multiple choice questions
-- 4 options per question
-- Correct answer detection
-- Difficulty tagging
-- Score calculation
-- Result storage
-
-### AI Summary
-- Structured summaries
-- Key concepts highlighted
-- Optimized for learning retention
-
-### Context-Aware Chat
-- Ask questions based on uploaded document
-- Relevant chunk retrieval
-- Persistent chat history
-- Chat history per document
-
-### Progress Tracking
-- Total documents uploaded
-- Total quizzes attempted
-- Average quiz score
-- Flashcard review statistics
-- User learning analytics
+- Profile image upload (Cloudinary integration)
+- Password update functionality
 
 ---
 
-## Tech Stack
+### 📄 Document Processing
+- Upload PDF documents
+- Automatic text extraction
+- Intelligent chunking
+- Cloud storage support
+- Document status tracking
+
+---
+
+### 🧠 AI Features (Gemini Powered)
+- AI flashcard generation
+- AI quiz generation (MCQs)
+- AI summaries (structured)
+- Context-aware chat with documents
+- Persistent chat history
+
+---
+
+### 🃏 Flashcards
+- Auto-generated flashcards
+- Difficulty tagging
+- Star / unstar
+- Review tracking
+
+---
+
+### 📝 Quizzes
+- Multiple-choice questions
+- Score calculation
+- Attempt tracking
+- Result storage
+- Performance-based analytics
+
+---
+
+### 📊 Analytics Dashboard
+- User-specific analytics (NOT global)
+- Study activity (last 30 days)
+- Quiz performance tracking
+- Flashcard mastery (donut chart)
+- Weekly consistency graph
+- Feature usage insights
+
+---
+
+### 🎨 UI/UX
+- Fully responsive
+- Dark theme across app
+- Recharts-powered analytics
+- Clean SaaS-style dashboard layout
+
+---
+
+## 🛠 Tech Stack
 
 ### Backend
 - Node.js
 - Express.js
-- MongoDB
-- Mongoose
-- Google Gemini AI (@google/genai)
+- MongoDB + Mongoose
 - JWT Authentication
-- Multer (file handling)
-- dotenv
+- Multer (file upload)
+- Cloudinary (media storage)
+- Google Gemini AI
+
+---
 
 ### Frontend
-- React.js
-- Vite
+- React.js (Vite)
 - Tailwind CSS
 - React Router
 - Context API
+- Recharts (analytics)
 - React Hot Toast
 - Lucide Icons
+
+---
 
 ### AI Model
 - gemini-2.5-flash-lite
 
 ---
 
-## Project Structure
-
+## 📁 Updated Project Structure
 ```
 MEMORAX
 │
 ├── backend
 │   ├── config
+│   │   ├── cloudinary.js
 │   │   ├── db.js
 │   │   └── multer.js
 │   │
@@ -115,14 +131,15 @@ MEMORAX
 │   │
 │   ├── middleware
 │   │   ├── auth.js
-│   │   └── errorHandler.js
+│   │   ├── errorHandler.js
+│   │   └── upload.js
 │   │
 │   ├── models
-│   │   ├── User.js
-│   │   ├── Document.js
-│   │   ├── Flashcard.js
-│   │   ├── Quiz.js
-│   │   └── ChatHistory.js
+│   │   ├── userModel.js
+│   │   ├── documentModel.js
+│   │   ├── flashcardModel.js
+│   │   ├── quizModel.js
+│   │   └── chatHistoryModel.js
 │   │
 │   ├── routes
 │   │   ├── aiRoutes.js
@@ -132,12 +149,14 @@ MEMORAX
 │   │   ├── progressRoutes.js
 │   │   └── quizRoutes.js
 │   │
+│   ├── uploads
+│   │   └── documents
+│   │
 │   ├── utils
 │   │   ├── geminiService.js
 │   │   ├── pdfParser.js
 │   │   └── textChunker.js
 │   │
-│   ├── uploads
 │   ├── server.js
 │   ├── .env
 │   └── package.json
@@ -147,87 +166,146 @@ MEMORAX
     ├── src
     │   ├── assets
     │   ├── components
+    │   │   ├── ai
+    │   │   ├── auth
+    │   │   ├── chat
+    │   │   ├── common
+    │   │   ├── dashboard
+    │   │   ├── documents
+    │   │   ├── flashcards
+    │   │   ├── layout
+    │   │   └── quizzes
+    │   │
     │   ├── context
     │   │   └── AuthContext.jsx
     │   │
     │   ├── pages
     │   │   ├── Auth
-    │   │   │   ├── LoginPage.jsx
-    │   │   │   └── RegisterPage.jsx
     │   │   ├── Dashboard
     │   │   ├── Documents
     │   │   ├── FlashCards
     │   │   ├── Profile
     │   │   ├── Quizzes
+    │   │   ├── LandingPage.jsx
     │   │   └── NotFoundPage.jsx
     │   │
     │   ├── services
+    │   │   ├── aiService.js
+    │   │   ├── authService.js
+    │   │   ├── documentService.js
+    │   │   ├── flashcardService.js
+    │   │   ├── progressService.js
+    │   │   └── quizService.js
+    │   │
     │   ├── utils
+    │   │   ├── apiPaths.js
+    │   │   └── axiosInstance.js
+    │   │
     │   ├── App.jsx
     │   ├── main.jsx
     │   └── index.css
     │
+    ├── .env
     ├── tailwind.config.js
-    ├── postcss.config.js
     ├── vite.config.js
     └── package.json
+```
+---
+
+## 🔌 API Routes
+
+### Auth
+- POST `/api/auth/register`
+- POST `/api/auth/login`
+- GET `/api/auth/profile`
+- PUT `/api/auth/profile`
+- POST `/api/auth/change-password`
+- PUT `/api/auth/profile-image`
+
+---
+
+### Documents
+- POST `/api/documents/upload`
+- GET `/api/documents`
+- GET `/api/documents/:id`
+- PUT `/api/documents/:id`
+- DELETE `/api/documents/:id`
+
+---
+
+### Flashcards
+- GET `/api/flashcards/:documentId`
+- POST `/api/flashcards`
+- PUT `/api/flashcards/:cardId/star`
+- DELETE `/api/flashcards/:id`
+
+---
+
+### Quizzes
+- GET `/api/quizzes/:documentId`
+- GET `/api/quizzes/:id`
+- POST `/api/quizzes/:id/submit`
+- GET `/api/quizzes/:id/results`
+- DELETE `/api/quizzes/:id`
+
+---
+
+### AI
+- POST `/api/ai/generate-flashcards`
+- POST `/api/ai/generate-quiz`
+- POST `/api/ai/generate-summary`
+- POST `/api/ai/chat`
+- GET `/api/ai/chat-history/:documentId`
+
+---
+
+### Progress / Analytics
+- GET `/api/progress/dashboard`
+
+---
+
+## ⚙️ Environment Variables
+
+### 📦 Backend `.env`
+```
+PORT=8000
+MONGO_URI=your_mongodb_connection_string
+
+JWT_SECRET=your_secret_key
+JWT_EXPIRE=7d
+
+NODE_ENV=development
+
+GEMINI_API_KEY=your_gemini_api_key
+
+MAX_FILE_SIZE=10485760
+
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
 ```
 
 ---
 
-## API Routes
-
-### Auth Routes
-- POST /api/auth/register
-- POST /api/auth/login
-- GET /api/auth/profile
-- PUT /api/auth/profile
-- PUT /api/auth/password
-
-### Document Routes
-- POST /api/documents/upload
-- GET /api/documents
-- GET /api/documents/:id
-- DELETE /api/documents/:id
-- PUT /api/documents/:id
-
-### Flashcard Routes
-- GET /api/flashcards/:documentId
-- POST /api/flashcards
-- PUT /api/flashcards/:cardId/star
-- DELETE /api/flashcards/:id
-
-### Quiz Routes
-- GET /api/quizzes/:documentId
-- GET /api/quizzes/:id
-- POST /api/quizzes/:id/submit
-- GET /api/quizzes/:id/results
-- DELETE /api/quizzes/:id
-
-### AI Routes
-- POST /api/ai/generate-flashcards
-- POST /api/ai/generate-quiz
-- POST /api/ai/generate-summary
-- POST /api/ai/chat
-- GET /api/ai/chat-history/:documentId
-
-### Progress Routes
-- GET /api/progress/dashboard
+### 🌐 Frontend `.env`
+```
+VITE_API_BASE_URL=http://localhost:8000
+```
 
 ---
 
-## Installation
+## 🧪 Running Locally
 
 ### Backend
-
 ```
 cd backend
 npm install
 npm run dev
 ```
 
-### Frontend
+---
 
+### Frontend
 ```
 cd frontend/memora-x
 npm install
@@ -236,29 +314,16 @@ npm run dev
 
 ---
 
-## Environment Variables
-
-Create a `.env` file inside `backend/`
-
-```
-PORT=5000
-MONGO_URI=your_mongodb_connection_string
-JWT_SECRET=your_secret_key
-GEMINI_API_KEY=your_gemini_key
-```
-
----
-
-## Future Improvements
+## 🔮 Future Improvements
 
 - Spaced repetition algorithm
-- PDF annotations
-- Real-time collaborative study
-- Advanced analytics dashboard
-- Role-based access control
+- AI study recommendations
+- Real-time collaboration
+- Advanced analytics (AI insights)
+- Mobile app
 
 ---
 
-## License
+## 📄 License
 
 This project is for educational and development purposes.

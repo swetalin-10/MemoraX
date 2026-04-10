@@ -198,7 +198,6 @@ const DocumentListPage = () => {
               {/* {Title Input} */}
               <div className="space-y-2">
                 <label className="block text-xs font-semibold text-neutral-300 uppercase tracking-wide">
->
                   Document Title
                 </label>
                 <input
