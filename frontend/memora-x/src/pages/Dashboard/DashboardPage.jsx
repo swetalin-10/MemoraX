@@ -2,7 +2,21 @@ import React, { useState, useEffect } from "react";
 import Spinner from "../../components/common/Spinner";
 import progressService from "../../services/progressService";
 import toast from "react-hot-toast";
-import { FileText, BookOpen, BrainCircuit, Clock } from "lucide-react";
+import {
+  FileText,
+  BookOpen,
+  BrainCircuit,
+  Clock,
+  Trophy,
+} from "lucide-react";
+import StatCard from "../../components/dashboard/StatCard";
+import AnalyticsCard from "../../components/dashboard/AnalyticsCard";
+import ActivityChart from "../../components/dashboard/ActivityChart";
+import QuizPerformanceChart from "../../components/dashboard/QuizPerformanceChart";
+import FlashcardPieChart from "../../components/dashboard/FlashcardPieChart";
+import WeeklyConsistencyChart from "../../components/dashboard/WeeklyConsistencyChart";
+import FeatureUsageChart from "../../components/dashboard/FeatureUsageChart";
+import { summaryStats, chartTheme } from "../../components/dashboard/mockData";
 
 const DashboardPage = () => {
   const [dashboardData, setDashboardData] = useState(null);
@@ -13,7 +27,7 @@ const DashboardPage = () => {
       try {
         const data = await progressService.getDashboardData();
         setDashboardData(data.data);
-      } catch (error) {
+      } catch (_error) {
         toast.error("Failed to fetch dashboard data");
       } finally {
         setLoading(false);
@@ -35,21 +49,34 @@ const DashboardPage = () => {
     );
   }
 
-  const stats = [
+  const analyticsStats = [
     {
-      label: "Total Documents",
-      value: dashboardData.overview.totalDocuments,
-      icon: FileText,
+      title: "Total Documents",
+      value: summaryStats.totalDocuments,
+      icon: <FileText className="w-5 h-5" />,
+      trend: "+8% this week",
+      accentColor: chartTheme.colors.primary,
     },
     {
-      label: "Total Flashcards",
-      value: dashboardData.overview.totalFlashcards,
-      icon: BookOpen,
+      title: "Total Flashcards",
+      value: summaryStats.totalFlashcards,
+      icon: <BookOpen className="w-5 h-5" />,
+      trend: "+15% this week",
+      accentColor: chartTheme.colors.secondary,
     },
     {
-      label: "Total Quizzes",
-      value: dashboardData.overview.totalQuizzes,
-      icon: BrainCircuit,
+      title: "Total Quizzes",
+      value: summaryStats.totalQuizzes,
+      icon: <BrainCircuit className="w-5 h-5" />,
+      trend: "+4% this week",
+      accentColor: chartTheme.colors.tertiary,
+    },
+    {
+      title: "Average Score",
+      value: `${summaryStats.averageScore}%`,
+      icon: <Trophy className="w-5 h-5" />,
+      trend: "+6.2% from last week",
+      accentColor: chartTheme.colors.success,
     },
   ];
 
@@ -65,27 +92,55 @@ const DashboardPage = () => {
           Track your learning progress and insights
         </p>
       </div>
+      {/* Analytics Overview */}
+      <div className="mb-6">
+        <h2 className="text-2xl font-medium text-white tracking-tight">
+          Analytics Overview
+        </h2>
+        <p className="text-neutral-400 text-sm mt-1">
+          Track your learning progress and study habits.
+        </p>
+      </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        {stats.map((stat, index) => (
-          <div
-            key={index}
-            className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 transition"
-          >
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wide">
-                {stat.label}
-              </span>
-              <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center shadow-[0_8px_30px_rgb(0,0,0,0.12)]">
-                <stat.icon className="w-5 h-5 text-white" />
-              </div>
-            </div>
-            <div className="text-3xl font-semibold text-white">
-              {stat.value}
-            </div>
-          </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-8">
+        {analyticsStats.map((stat) => (
+          <StatCard
+            key={stat.title}
+            title={stat.title}
+            value={stat.value}
+            icon={stat.icon}
+            trend={stat.trend}
+            accentColor={stat.accentColor}
+          />
         ))}
+      </div>
+
+      {/* Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <AnalyticsCard title="Study Activity (Last 30 Days)">
+          <ActivityChart />
+        </AnalyticsCard>
+
+        <AnalyticsCard title="Quiz Performance" subtitle="Score per attempt">
+          <QuizPerformanceChart />
+        </AnalyticsCard>
+
+        <AnalyticsCard title="Flashcard Mastery">
+          <FlashcardPieChart />
+        </AnalyticsCard>
+
+        <AnalyticsCard title="Weekly Consistency" subtitle="Sessions per day">
+          <WeeklyConsistencyChart />
+        </AnalyticsCard>
+
+        <AnalyticsCard
+          title="Feature Usage"
+          subtitle="What you use most"
+          className="lg:col-span-2"
+        >
+          <FeatureUsageChart />
+        </AnalyticsCard>
       </div>
 
       {/* Recent Activity */}
