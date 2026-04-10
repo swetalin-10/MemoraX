@@ -11,19 +11,18 @@ import {
 } from "recharts";
 import { chartTheme } from "./chartTheme";
 
-const getScoreColor = (score) => {
-  if (score >= 80) return chartTheme.colors.success;
-  if (score >= 60) return chartTheme.colors.warning;
-  return chartTheme.colors.danger;
-};
-
 const QuizPerformanceChart = ({ data }) => {
+  const processedData = (data || []).map((entry, index) => ({
+    ...entry,
+    uniqueAttempt: `${entry.attempt} (Attempt ${index + 1})`
+  }));
+
   return (
     <ResponsiveContainer width="100%" height="100%">
-      <BarChart data={data || []} margin={{ top: 8, right: 16, left: -6, bottom: 8 }}>
+      <BarChart data={processedData} margin={{ top: 8, right: 16, left: -6, bottom: 8 }}>
         <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.colors.grid} />
         <XAxis
-          dataKey="attempt"
+          dataKey="uniqueAttempt"
           tick={{ fill: chartTheme.colors.axisText, fontSize: 11 }}
           axisLine={{ stroke: chartTheme.colors.grid }}
           tickLine={{ stroke: chartTheme.colors.grid }}
@@ -36,19 +35,21 @@ const QuizPerformanceChart = ({ data }) => {
           tickLine={{ stroke: chartTheme.colors.grid }}
         />
         <Tooltip
+          cursor={{ fill: "rgba(255, 255, 255, 0.05)" }}
           contentStyle={chartTheme.tooltipStyle}
-          labelStyle={{ color: chartTheme.colors.tooltipText }}
+          labelStyle={{ color: chartTheme.colors.tooltipText, fontWeight: "bold" }}
           itemStyle={{ color: chartTheme.colors.tooltipText }}
           formatter={(value) => [`${value}%`, "Score"]}
-          labelFormatter={(label, payload) => {
-            const subject = payload?.[0]?.payload?.subject;
-            return subject ? `${label} • ${subject}` : label;
-          }}
+          labelFormatter={(label) => label}
         />
         <Bar dataKey="score" radius={[4, 4, 0, 0]}>
-          {(data || []).map((entry) => (
-            <Cell key={entry.attempt} fill={getScoreColor(entry.score)} />
-          ))}
+          {processedData.map((entry, index) => {
+            let color = "#22C55E";
+            if (entry.score <= 40) color = "#EF4444";
+            else if (entry.score <= 70) color = "#F59E0B";
+
+            return <Cell key={`cell-${index}`} fill={color} />;
+          })}
         </Bar>
       </BarChart>
     </ResponsiveContainer>
