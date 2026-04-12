@@ -9,19 +9,48 @@ import {
 } from "recharts";
 import { chartTheme } from "./chartTheme";
 
-const pieColors = [
-  chartTheme.colors.success,
-  chartTheme.colors.warning,
-  chartTheme.colors.muted,
-];
+const pieColors = ["#22c55e", "#64748b"];
+
+const CustomTooltip = ({ active, payload }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div style={chartTheme.tooltipStyle}>
+        <p style={{ color: chartTheme.colors.tooltipText, margin: 0, fontWeight: 500 }}>
+          {payload[0].name}
+        </p>
+        <p style={{ color: chartTheme.colors.tooltipText, margin: 0, marginTop: "4px" }}>
+          {payload[0].value} cards
+        </p>
+      </div>
+    );
+  }
+  return null;
+};
 
 const FlashcardPieChart = ({ data }) => {
+  let reviewedCount = 0;
+  let notReviewedCount = 0;
+  let totalCards = 0;
+
+  if (Array.isArray(data)) {
+    reviewedCount = data.filter((card) => {
+      if (card.reviewCount !== undefined) {
+        return card.reviewCount > 0;
+      }
+      return card.isReviewed === true;
+    }).length;
+    notReviewedCount = data.length - reviewedCount;
+    totalCards = data.length;
+  } else if (data) {
+    reviewedCount = (data.mastered || 0) + (data.learning || 0);
+    notReviewedCount = data.notStarted || 0;
+    totalCards = reviewedCount + notReviewedCount;
+  }
+
   const chartData = [
-    { name: "Mastered", value: data?.mastered || 0 },
-    { name: "Learning", value: data?.learning || 0 },
-    { name: "Not Started", value: data?.notStarted || 0 },
+    { name: "Reviewed", value: reviewedCount },
+    { name: "Not Reviewed", value: notReviewedCount },
   ];
-  const totalCards = chartData.reduce((sum, item) => sum + item.value, 0);
 
   return (
     <div className="relative w-full h-full">
@@ -40,11 +69,7 @@ const FlashcardPieChart = ({ data }) => {
               <Cell key={entry.name} fill={pieColors[index]} />
             ))}
           </Pie>
-          <Tooltip
-            contentStyle={chartTheme.tooltipStyle}
-            labelStyle={{ color: chartTheme.colors.tooltipText }}
-            itemStyle={{ color: chartTheme.colors.tooltipText }}
-          />
+          <Tooltip content={<CustomTooltip />} />
           <Legend
             verticalAlign="bottom"
             iconType="circle"
@@ -53,7 +78,9 @@ const FlashcardPieChart = ({ data }) => {
         </PieChart>
       </ResponsiveContainer>
       <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-2xl font-semibold text-white leading-none">{totalCards}</span>
+        <span className="text-2xl font-semibold text-white leading-none">
+          {totalCards}
+        </span>
         <span className="text-xs text-neutral-400 mt-1">Total Cards</span>
       </div>
     </div>
