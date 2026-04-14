@@ -20,6 +20,7 @@ const formatDay = (date) => {
 export const getDashboard = async (req, res, next) => {
   try {
     const userId = req.user._id;
+    const { range = '30d' } = req.query;
 
     // Get basic stats
     const totalDocuments = await Document.countDocuments({ userId });
@@ -32,19 +33,22 @@ export const getDashboard = async (req, res, next) => {
         ? Math.round(completedQuizzes.reduce((sum, q) => sum + q.score, 0) / completedQuizzes.length)
         : 0;
 
-    // === Study Activity (Last 30 Days) ===
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 29);
-    thirtyDaysAgo.setHours(0, 0, 0, 0);
+    // === Study Activity (Dynamic Date Range) ===
+    let days = 30;
+    if (range === '7d') days = 7;
+    else if (range === '90d') days = 90;
 
-    const recentDocs = await Document.find({ userId, uploadDate: { $gte: thirtyDaysAgo } });
-    const recentQuizzesCreated = await Quiz.find({ userId, createdAt: { $gte: thirtyDaysAgo } });
-    const recentFlashcardSets = await Flashcard.find({ userId, createdAt: { $gte: thirtyDaysAgo } });
+    const targetDate = new Date();
+    targetDate.setDate(targetDate.getDate() - (days - 1));
+    targetDate.setHours(0, 0, 0, 0);
+
+    const recentDocs = await Document.find({ userId, uploadDate: { $gte: targetDate } });
+    const recentQuizzesCreated = await Quiz.find({ userId, createdAt: { $gte: targetDate } });
+    const recentFlashcardSets = await Flashcard.find({ userId, createdAt: { $gte: targetDate } });
 
     const activityMap = {};
-    // Initialize exactly 30 days
-    for (let i = 0; i < 30; i++) {
-        const d = new Date(thirtyDaysAgo);
+    for (let i = 0; i < days; i++) {
+        const d = new Date(targetDate);
         d.setDate(d.getDate() + i);
         activityMap[formatDate(d)] = { uploads: 0, flashcards: 0, quizzes: 0 };
     }

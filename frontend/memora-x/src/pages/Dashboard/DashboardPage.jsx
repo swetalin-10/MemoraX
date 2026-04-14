@@ -15,7 +15,6 @@ import ActivityChart from "../../components/dashboard/ActivityChart";
 import QuizPerformanceChart from "../../components/dashboard/QuizPerformanceChart";
 import FlashcardPieChart from "../../components/dashboard/FlashcardPieChart";
 import WeeklyConsistencyChart from "../../components/dashboard/WeeklyConsistencyChart";
-import FeatureUsageChart from "../../components/dashboard/FeatureUsageChart";
 import { chartTheme } from "../../components/dashboard/chartTheme";
 
 const DashboardPage = () => {
@@ -115,9 +114,9 @@ const DashboardPage = () => {
 
       {/* Row 2: Study Activity (larger) & Quiz Performance */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        <AnalyticsCard title="Study Activity (Last 30 Days)" className="lg:col-span-2">
+        <div className="lg:col-span-2">
           <ActivityChart data={dashboardData.studyActivity} />
-        </AnalyticsCard>
+        </div>
 
         <AnalyticsCard title="Quiz Performance" subtitle="Score per attempt" className="lg:col-span-1">
           <QuizPerformanceChart data={dashboardData.quizPerformance} />
@@ -135,16 +134,7 @@ const DashboardPage = () => {
         </AnalyticsCard>
       </div>
 
-      {/* Row 4: Feature Usage */}
-      <div className="grid grid-cols-1 gap-6 mb-8">
-        <AnalyticsCard
-          title="Feature Usage"
-          subtitle="What you use most"
-          className="w-full"
-        >
-          <FeatureUsageChart data={dashboardData.featureUsage} />
-        </AnalyticsCard>
-      </div>
+
 
       {/* Recent Activity */}
       <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-8">
