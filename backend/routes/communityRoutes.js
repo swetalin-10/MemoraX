@@ -12,11 +12,15 @@ import {
   deletePost,
   updateComment,
   deleteComment,
+  getSharedPost,
 } from "../controllers/communityController.js";
 
 const router = express.Router();
 
-// Apply auth middleware to all community routes
+// Public route — no auth required
+router.get("/post/share/:shareId", getSharedPost);
+
+// Apply auth middleware to all routes below
 router.use(protect);
 
 router.post(

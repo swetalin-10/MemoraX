@@ -1,4 +1,8 @@
 import mongoose from "mongoose";
+import crypto from "crypto";
+
+// Generate a short unique ID (8 chars, URL-safe)
+const generateShareId = () => crypto.randomBytes(6).toString("base64url").slice(0, 8);
 
 const postSchema = new mongoose.Schema(
   {
@@ -6,6 +10,11 @@ const postSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
+    },
+    shareId: {
+      type: String,
+      unique: true,
+      default: generateShareId,
     },
     content: {
       type: String,
