@@ -109,6 +109,37 @@ export const getAllPosts = async (req, res, next) => {
   }
 };
 
+// @desc Get a single post by shareId (public access)
+// @route GET /api/community/post/share/:shareId
+// @access Public
+export const getSharedPost = async (req, res, next) => {
+  try {
+    const post = await Post.findOne({ shareId: req.params.shareId })
+      .populate("user", "username profileImage");
+
+    if (!post) {
+      return res.status(404).json({
+        success: false,
+        error: "Post not found",
+      });
+    }
+
+    const comments = await Comment.find({ post: post._id })
+      .populate("user", "username profileImage")
+      .sort({ createdAt: 1 });
+
+    res.status(200).json({
+      success: true,
+      data: {
+        ...post.toObject(),
+        comments,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // @desc Toggle like on a post
 // @route PUT /api/community/post/:id/like
 // @access Private
