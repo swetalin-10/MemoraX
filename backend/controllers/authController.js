@@ -45,6 +45,7 @@ export const register = async (req, res, next) => {
         username: user.username,
         email: user.email,
         profileImage: user.profileImage,
+        bio: user.bio || "",
         createdAt: user.createdAt,
       },
       token,
@@ -103,6 +104,7 @@ export const login = async (req, res, next) => {
         username: user.username,
         email: user.email,
         profileImage: user.profileImage,
+        bio: user.bio || "",
       },
       token,
       message: "User logged in successfully",
@@ -126,6 +128,7 @@ export const getProfile = async (req, res, next) => {
         username: user.username,
         email: user.email,
         profileImage: user.profileImage,
+        bio: user.bio || "",
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
       },
@@ -140,13 +143,64 @@ export const getProfile = async (req, res, next) => {
 // @access Private
 export const updateProfile = async (req, res, next) => {
   try {
-    const { username, email, profileImage } = req.body;
+    const { username, email, bio } = req.body;
 
     const user = await User.findById(req.user.id);
 
-    if (username) user.username = username;
-    if (email) user.email = email;
-    if (profileImage) user.profileImage = profileImage;
+    // Validate name
+    if (username !== undefined) {
+      if (!username || username.trim().length < 2) {
+        return res.status(400).json({
+          success: false,
+          error: "Name must be at least 2 characters",
+          statusCode: 400,
+        });
+      }
+      // Check if username is already taken by another user
+      const existingUser = await User.findOne({ username: username.trim(), _id: { $ne: req.user.id } });
+      if (existingUser) {
+        return res.status(400).json({
+          success: false,
+          error: "Username is already taken",
+          statusCode: 400,
+        });
+      }
+      user.username = username.trim();
+    }
+
+    // Validate email
+    if (email !== undefined) {
+      const emailRegex = /^\S+@\S+\.\S+$/;
+      if (!email || !emailRegex.test(email)) {
+        return res.status(400).json({
+          success: false,
+          error: "Please provide a valid email address",
+          statusCode: 400,
+        });
+      }
+      // Check if email is already taken by another user
+      const existingEmail = await User.findOne({ email: email.toLowerCase(), _id: { $ne: req.user.id } });
+      if (existingEmail) {
+        return res.status(400).json({
+          success: false,
+          error: "Email is already registered to another account",
+          statusCode: 400,
+        });
+      }
+      user.email = email.toLowerCase();
+    }
+
+    // Validate bio
+    if (bio !== undefined) {
+      if (bio.length > 200) {
+        return res.status(400).json({
+          success: false,
+          error: "Bio cannot exceed 200 characters",
+          statusCode: 400,
+        });
+      }
+      user.bio = bio;
+    }
 
     await user.save();
 
@@ -157,6 +211,7 @@ export const updateProfile = async (req, res, next) => {
         username: user.username,
         email: user.email,
         profileImage: user.profileImage,
+        bio: user.bio || "",
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
       },
@@ -188,10 +243,19 @@ export const changePassword = async (req, res, next) => {
     const isMatch = await user.comparePassword(currentPassword);
 
     if (!isMatch) {
-      return res.status(401).json({
+      return res.status(400).json({
         success: false,
         error: "Current password is incorrect",
-        statusCode: 401,
+        statusCode: 400,
+      });
+    }
+
+    // Validate new password strength
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        success: false,
+        error: "New password must be at least 6 characters long",
+        statusCode: 400,
       });
     }
 
