@@ -49,6 +49,11 @@ const postSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+    fileType: {
+      type: String,
+      enum: ["image", "raw", null],
+      default: null,
+    },
     commentsCount: {
       type: Number,
       default: 0,

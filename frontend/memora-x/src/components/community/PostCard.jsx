@@ -289,29 +289,69 @@ const PostCard = ({ post, onPostUpdated, onPostDeleted, readOnly = false }) => {
         )}
 
         {/* File attachment display */}
-        {post.file && (
-          <div className="flex items-center gap-3 bg-neutral-900/60 border border-neutral-800/50 rounded-xl px-4 py-3 group hover:border-neutral-700 transition-colors">
-            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-              <FileText size={20} className="text-primary" />
+        {post.file && (() => {
+          const fileUrl = post.file;
+
+          // Fetch-based download to preserve filename (cross-origin <a download> is ignored)
+          const handleFileDownload = async (e) => {
+            e.preventDefault();
+            const name = post.fileName || 'file';
+            try {
+              const response = await fetch(fileUrl);
+              if (!response.ok) throw new Error('Download failed');
+              const blob = await response.blob();
+              const blobUrl = window.URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = blobUrl;
+              a.download = name;
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+              window.URL.revokeObjectURL(blobUrl);
+            } catch (err) {
+              // Fallback: open in new tab
+              window.open(fileUrl, '_blank');
+            }
+          };
+
+          // Determine if the file is an image (new posts have fileType, old posts fallback to extension)
+          const imageExts = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.bmp'];
+          const isFileImage = post.fileType === 'image' ||
+            (!post.fileType && imageExts.some(ext => post.file.toLowerCase().endsWith(ext)));
+
+          return isFileImage ? (
+            // Render image preview for image-type files
+            <div className="flex justify-center items-center">
+              <img
+                src={fileUrl}
+                alt={post.fileName || "Attached image"}
+                className="w-full max-h-[500px] object-contain rounded-xl bg-black border border-neutral-800 shadow-md cursor-pointer hover:brightness-110 transition-all"
+                loading="lazy"
+                onClick={() => setImageModal(fileUrl)}
+              />
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-neutral-200 truncate">
-                {getFileDisplayName()}
-              </p>
-              <p className="text-xs text-neutral-500">Attached file</p>
+          ) : (
+            // Render file card with download button for non-image files
+            <div className="flex items-center gap-3 bg-neutral-900/60 border border-neutral-800/50 rounded-xl px-4 py-3 group hover:border-neutral-700 transition-colors">
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <FileText size={20} className="text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-neutral-200 truncate">
+                  {getFileDisplayName()}
+                </p>
+                <p className="text-xs text-neutral-500">Attached file</p>
+              </div>
+              <button
+                onClick={handleFileDownload}
+                className="flex items-center gap-1.5 text-sm font-medium text-primary hover:text-primary-dark px-3 py-1.5 rounded-lg hover:bg-neutral-800 transition-colors"
+              >
+                <Download size={16} />
+                Download
+              </button>
             </div>
-            <a
-              href={post.file}
-              target="_blank"
-              rel="noopener noreferrer"
-              download
-              className="flex items-center gap-1.5 text-sm font-medium text-primary hover:text-primary-dark px-3 py-1.5 rounded-lg hover:bg-neutral-800 transition-colors"
-            >
-              <Download size={16} />
-              Download
-            </a>
-          </div>
-        )}
+          );
+        })()}
       </div>
 
       {/* Actions */}
