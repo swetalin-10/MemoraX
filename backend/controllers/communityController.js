@@ -11,6 +11,7 @@ export const createPost = async (req, res, next) => {
     let imageUrl = null;
     let fileUrl = null;
     let fileName = null;
+    let fileType = null;
 
     if (!content && (!req.files || (!req.files.image && !req.files.file))) {
       return res.status(400).json({
@@ -42,9 +43,12 @@ export const createPost = async (req, res, next) => {
 
       if (req.files.file) {
         fileName = req.files.file[0].originalname;
+        const fileMime = req.files.file[0].mimetype;
+        const resourceType = fileMime.startsWith("image/") ? "image" : "raw";
+
         await new Promise((resolve, reject) => {
           const stream = cloudinary.uploader.upload_stream(
-            { folder: "community_posts", resource_type: "auto" },
+            { folder: "community_posts", resource_type: resourceType },
             (error, result) => {
               if (error) reject(new Error("Cloudinary file upload failed"));
               else {
@@ -55,6 +59,8 @@ export const createPost = async (req, res, next) => {
           );
           stream.end(req.files.file[0].buffer);
         });
+
+        fileType = resourceType;
       }
     }
 
@@ -64,6 +70,7 @@ export const createPost = async (req, res, next) => {
       image: imageUrl,
       file: fileUrl,
       fileName,
+      fileType,
     });
 
     const populatedPost = await post.populate("user", "username profileImage");
