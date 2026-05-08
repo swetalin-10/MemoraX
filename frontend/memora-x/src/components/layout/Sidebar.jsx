@@ -12,6 +12,7 @@ import {
   ClipboardList,
   Users,
   X,
+  Route,
 } from "lucide-react";
 
 const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
@@ -33,6 +34,7 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
     { to: "/documents", icon: FileText, text: "Documents" },
     { to: "/flashcards", icon: BookOpen, text: "Flashcards" },
     { to: "/quizzes", icon: ClipboardList, text: "Quizzes" },
+    { to: "/study-planner", icon: Route, text: "Study Planner" },
     { to: "/community", icon: Users, text: "Community" },
     { to: "/profile", icon: User, text: "Profile" },
   ];
