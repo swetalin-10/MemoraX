@@ -1,224 +1,321 @@
 /**
-Split text into chunks for better AI processing
-* @param {string} text -Full text to chunk
-* @param {number} chunkSize Target size per chunk (in words)
-* @param {number} overlap Number of words to overlap between chunks
-* @returns {Array<{content: string, chunkIndex: number, pageNumber: number}>}
-*/
+ * Text Chunking & Retrieval Module
+ *
+ * Splits document text into semantically meaningful chunks and provides
+ * intelligent retrieval using TF-IDF scoring, query expansion, n-gram
+ * matching, and heading-aware ranking.
+ */
 
-export const chunkText = (text, chunkSize = 500, overlap = 50) => {
+import {
+  normalizeText,
+  extractKeywords,
+  expandQuery,
+  extractNGrams,
+  computeIDF,
+  computeTF,
+  mergeAdjacentChunks,
+  isLikelyHeading,
+  STOP_WORDS,
+} from "./semanticHelpers.js";
+
+// ─── Chunking ────────────────────────────────────────────────────────────────
+
+/**
+ * Split text into semantic chunks for AI processing.
+ *
+ * Improvements over the original:
+ * - Sentence-aware splitting (never cuts mid-sentence)
+ * - Heading/section detection and preservation
+ * - Each chunk carries its section heading for context
+ * - Proper overlap using trailing sentences from previous chunk
+ *
+ * @param {string} text - Full document text
+ * @param {number} chunkSize - Target size per chunk (in words). Default 300.
+ * @param {number} overlap - Number of overlap words between chunks. Default 75.
+ * @returns {Array<{content: string, chunkIndex: number, pageNumber: number, heading: string}>}
+ */
+export const chunkText = (text, chunkSize = 300, overlap = 75) => {
   if (!text || text.trim().length === 0) {
     return [];
   }
 
-  // Clean text while preserving paragraph structure
+  // Clean text: normalize line endings, collapse excessive whitespace,
+  // but PRESERVE spaces between words (the original bug destroyed all spaces)
   const cleanedText = text
-    .replace(/\r\n/g, "\n")
-    .replace(/\s+/g, "")
-    .replace(/\n/g, "\n")
-    .replace(/\n/g, "\n")
+    .replace(/\r\n/g, "\n")       // Normalize line endings
+    .replace(/\n{3,}/g, "\n\n")   // Collapse 3+ newlines to double
+    .replace(/[ \t]+/g, " ")      // Collapse horizontal whitespace (NOT newlines)
     .trim();
 
-  // Try to split by paragraphs (single or double newlines)
-  const paragraphs = cleanedText
-    .split(/\n+/)
-    .filter((p) => p.trim().length > 0);
+  // Split into lines for heading detection and paragraph processing
+  const lines = cleanedText.split("\n");
 
-  const chunks = [];
-  let currentChunk = [];
-  let currentWordCount = 0;
-  let chunkIndex = 0;
+  // Build structured paragraphs with heading tracking
+  const paragraphs = [];
+  let currentHeading = "";
 
-  for (const paragraph of paragraphs) {
-    const paragraphWords = paragraph.trim().split(/\s+/);
-    const paragraphWordCount = paragraphWords.length;
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
 
-    // If single paragraph exceeds chunk size, split it  by words
-    if (paragraphWordCount > chunkSize) {
-      if (currentChunk.length > 0) {
-        chunks.push({
-          content: currentChunk.join("\n\n"),
-          chunkIndex: chunkIndex++,
-          pageNumber: 0,
-        });
-        currentChunk = [];
-        currentWordCount = 0;
-      }
-
-      // Split large paragraph into word-based chunks
-      for (let i = 0; i < paragraphWords.length; i += chunkSize - overlap) {
-        const chunkWords = paragraphWords.slice(i, i + chunkSize);
-        chunks.push({
-          content: chunkWords.join(" "),
-          chunkIndex: chunkIndex++,
-          pageNumber: 0,
-        });
-
-        if (i + chunkSize >= paragraphWords.length) break;
-      }
-      continue;
-    }
-
-    // If adding this paragraph exceeds chunk size, save current chunk
-    if (
-      currentWordCount + paragraphWordCount > chunkSize &&
-      currentChunk.length > 0
-    ) {
-      chunks.push({
-        content: currentChunk.join("\n\n"),
-        chunkIndex: chunkIndex++,
-        pageNumber: 0,
-      });
-      //   Create overlap from previous chunk
-      const prevChunkText = currentChunk.join(" ");
-      const prevWords = prevChunkText.split(/\s+/);
-      const overlapText = prevWords
-        .slice(-Math.min(overlap, prevWords.length))
-        .join(" ");
-
-      currentChunk = [overlapText, paragraph.trim()];
-      currentWordCount = overlap.split(/\s+/).length + paragraphWordCount;
+    if (isLikelyHeading(trimmed)) {
+      currentHeading = trimmed;
+      // Also add the heading as its own paragraph so it gets included in chunks
+      paragraphs.push({ text: trimmed, heading: currentHeading, isHeading: true });
     } else {
-      // Add paragraph to current chunk
-      currentChunk.push(paragraph.trim());
-      currentWordCount += paragraphWordCount;
+      paragraphs.push({ text: trimmed, heading: currentHeading, isHeading: false });
     }
   }
 
-  //   Add the last chunk
-  if (currentChunk.length > 0) {
+  // Split each paragraph into sentences for sentence-aware chunking
+  const sentences = [];
+  for (const para of paragraphs) {
+    // Split by sentence-ending punctuation followed by space or end of string
+    const paraSentences = para.text
+      .split(/(?<=[.!?])\s+/)
+      .filter((s) => s.trim().length > 0);
+
+    for (const sent of paraSentences) {
+      sentences.push({
+        text: sent.trim(),
+        heading: para.heading,
+        isHeading: para.isHeading,
+        wordCount: sent.trim().split(/\s+/).length,
+      });
+    }
+  }
+
+  if (sentences.length === 0) {
+    return [];
+  }
+
+  // Build chunks using sentence boundaries
+  const chunks = [];
+  let chunkIndex = 0;
+  let i = 0;
+
+  while (i < sentences.length) {
+    let currentWords = 0;
+    const chunkSentences = [];
+    let chunkHeading = sentences[i].heading;
+    const startIdx = i;
+
+    // Add sentences until we reach the target chunk size
+    while (i < sentences.length && currentWords < chunkSize) {
+      chunkSentences.push(sentences[i].text);
+      currentWords += sentences[i].wordCount;
+
+      // Keep the first heading found in this chunk (primary section)
+      if (sentences[i].isHeading && !chunkHeading) {
+        chunkHeading = sentences[i].heading;
+      }
+      i++;
+    }
+
+    if (chunkSentences.length === 0) break;
+
+    // Build chunk content — prepend heading context if available
+    let content = chunkSentences.join(" ");
+    const headingPrefix =
+      chunkHeading && !content.startsWith(chunkHeading)
+        ? `[Section: ${chunkHeading}]\n`
+        : "";
+
     chunks.push({
-      content: currentChunk.join("\n\n"),
+      content: headingPrefix + content,
       chunkIndex: chunkIndex++,
       pageNumber: 0,
+      heading: chunkHeading,
     });
+
+    // Calculate overlap: go back by overlap words for the next chunk
+    if (i < sentences.length) {
+      let overlapWords = 0;
+      let backtrack = i - 1;
+
+      while (backtrack > startIdx && overlapWords < overlap) {
+        overlapWords += sentences[backtrack].wordCount;
+        backtrack--;
+      }
+
+      // Move index back for overlap (minimum 1 sentence overlap)
+      i = Math.max(backtrack + 1, startIdx + 1);
+    }
   }
 
-  //   Fallback: if no chunks created, split by words
+  // Fallback: if no chunks were created from structured parsing, do simple word-based split
   if (chunks.length === 0 && cleanedText.length > 0) {
     const allWords = cleanedText.split(/\s+/);
-    for (let i = 0; i < allWords.length; i += chunkSize - overlap) {
-      const chunkWords = allWords.slice(i, i + chunkSize);
+    for (let j = 0; j < allWords.length; j += chunkSize - overlap) {
+      const chunkWords = allWords.slice(j, j + chunkSize);
       chunks.push({
         content: chunkWords.join(" "),
         chunkIndex: chunkIndex++,
         pageNumber: 0,
+        heading: "",
       });
-
-      if (i + chunkSize >= allWords.length) break;
+      if (j + chunkSize >= allWords.length) break;
     }
   }
 
   return chunks;
 };
 
+// ─── Retrieval ───────────────────────────────────────────────────────────────
+
 /**
- * Find relevant chunks based on keyword matching
- * @param {Array<Object>} chunks - Array of chunks
- * @param {string} query - Search query
- * @param {number} maxChunks - Maximum chunks to return
- * @returns {Array<Object>} - Array of relevant chunks
+ * Find the most relevant chunks for a given query using multi-signal scoring.
+ *
+ * Scoring signals:
+ * 1. TF-IDF: weighted term importance across the chunk corpus
+ * 2. N-gram matching: phrase-level matching for better precision
+ * 3. Query expansion: synonym-based matching for semantic flexibility
+ * 4. Heading bonus: chunks whose headings match get boosted
+ * 5. Position bonus: slight preference for earlier document sections
+ * 6. Coverage bonus: chunks matching more unique query terms rank higher
+ *
+ * @param {Array<Object>} chunks - Array of document chunks
+ * @param {string} query - User's question
+ * @param {number} maxChunks - Maximum chunks to return (default 5)
+ * @param {string} documentTitle - Optional document title for contextual matching
+ * @returns {Array<Object>} Ranked relevant chunks
  */
-export const findRelevantChunks = (chunks, query, maxChunks = 3) => {
+export const findRelevantChunks = (chunks, query, maxChunks = 5, documentTitle = "") => {
   if (!chunks || chunks.length === 0 || !query) {
     return [];
   }
 
-  // Common stop words to exclude
-  const stopWords = new Set([
-    "the",
-    "is",
-    "at",
-    "which",
-    "on",
-    "a",
-    "an",
-    "and",
-    "or",
-    "but",
-    "in",
-    "with",
-    "to",
-    "for",
-    "of",
-    "as",
-    "by",
-    "this",
-    "that",
-    "it",
-  ]);
+  // ── Step 1: Expand query with synonyms ──────────────────────────────────
+  const { original: queryKeywords, expanded: expandedTerms, allTerms } = expandQuery(query);
 
-  //   Extract and clean query words
-  const queryWords = query
-    .toLowerCase()
-    .split(/\s+/)
-    .filter((w) => w.length > 2 && !stopWords.has(w));
-
-  if (queryWords.length === 0) {
-    // Return clean chunk objects without Mongoose metadata
+  // If after filtering there are no meaningful terms, return first few chunks
+  if (allTerms.length === 0) {
     return chunks.slice(0, maxChunks).map((chunk) => ({
       content: chunk.content,
       chunkIndex: chunk.chunkIndex,
       pageNumber: chunk.pageNumber,
+      heading: chunk.heading || "",
       _id: chunk._id,
     }));
   }
 
+  // ── Step 2: Compute IDF scores for all terms ───────────────────────────
+  const idfScores = computeIDF(allTerms, chunks);
+
+  // ── Step 3: Extract query n-grams for phrase matching ──────────────────
+  const queryBigrams = extractNGrams(query, 2);
+  const queryTrigrams = extractNGrams(query, 3);
+
+  // ── Step 4: Check for document title relevance ─────────────────────────
+  const titleKeywords = documentTitle ? extractKeywords(documentTitle) : [];
+  const queryMentionsTitle = titleKeywords.length > 0 &&
+    titleKeywords.some((tw) => queryKeywords.some((qw) => qw.includes(tw) || tw.includes(qw)));
+
+  // ── Step 5: Score each chunk ───────────────────────────────────────────
   const scoredChunks = chunks.map((chunk, index) => {
-    const content = chunk.content.toLowerCase();
-    const contentWords = content.split(/\s+/).length;
+    const normalizedContent = normalizeText(chunk.content);
+    const normalizedHeading = normalizeText(chunk.heading || "");
     let score = 0;
 
-    // Score each query word
-    for (const word of queryWords) {
-      // Exact word match (higher score)
-      const exactMatches = (
-        content.match(new RegExp(`\\b${word}\\b`, "g")) || []
-      ).length;
-
-      // Partial word match (lower score)
-      const partialMatches = (
-        content.match(new RegExp(`\\b${word}\\b`, "g")) || []
-      ).length;
-      score += Math.max(0, partialMatches - exactMatches) * 1.5;
+    // --- Signal 1: TF-IDF for original query keywords (highest weight) ---
+    let tfidfScore = 0;
+    for (const term of queryKeywords) {
+      const tf = computeTF(term, normalizedContent);
+      const idf = idfScores.get(term) || 1;
+      tfidfScore += tf * idf * 3.0; // 3x weight for original terms
     }
 
-    // Bonus: Multiple query words found
-    const uniqueWordsFound = queryWords.filter(word =>
-        content.includes(word)
+    // --- Signal 2: TF-IDF for expanded (synonym) terms (lower weight) ---
+    for (const term of expandedTerms) {
+      const tf = computeTF(term, normalizedContent);
+      const idf = idfScores.get(term) || 1;
+      tfidfScore += tf * idf * 1.0; // 1x weight for synonym terms
+    }
+    score += tfidfScore;
+
+    // --- Signal 3: N-gram phrase matching (bonus for exact phrases) ---
+    let ngramScore = 0;
+    for (const bigram of queryBigrams) {
+      if (normalizedContent.includes(bigram)) {
+        ngramScore += 2.0;
+      }
+    }
+    for (const trigram of queryTrigrams) {
+      if (normalizedContent.includes(trigram)) {
+        ngramScore += 3.0;
+      }
+    }
+    score += ngramScore;
+
+    // --- Signal 4: Heading match bonus ---
+    let headingScore = 0;
+    if (normalizedHeading) {
+      for (const term of allTerms) {
+        if (normalizedHeading.includes(term)) {
+          headingScore += 2.5;
+        }
+      }
+    }
+    score += headingScore;
+
+    // --- Signal 5: Coverage bonus (more unique query terms matched) ---
+    const matchedOriginal = queryKeywords.filter((w) =>
+      normalizedContent.includes(w)
     ).length;
-    if (uniqueWordsFound > 1) {
-      score += uniqueWordsFound * 2;
+    const coverage = queryKeywords.length > 0
+      ? matchedOriginal / queryKeywords.length
+      : 0;
+    score += coverage * 3.0;
+
+    // --- Signal 6: Position bonus (slight preference for intro sections) ---
+    // Introductory chunks often contain definitions and overviews
+    const positionBonus = 1 + (1 - index / chunks.length) * 0.15;
+    score *= positionBonus;
+
+    // --- Signal 7: Title-mention bonus for "what is X" type queries ---
+    if (queryMentionsTitle && index < Math.ceil(chunks.length * 0.3)) {
+      // Boost early chunks when user asks about the document topic itself
+      score *= 1.4;
     }
 
-    // Normalize by content length
-    const normalizedScore = score / Math.sqrt(contentWords);
-
-    // Small bonus for earlier chunks
-    const positionBonus = 1 - (index / chunks.length) * 0.1;
-
-    // Return clean object without Mongoose metadata
     return {
       content: chunk.content,
       chunkIndex: chunk.chunkIndex,
       pageNumber: chunk.pageNumber,
+      heading: chunk.heading || "",
       _id: chunk._id,
-      score: normalizedScore * positionBonus,
-      rawScore: score,
-      matchedWords: uniqueWordsFound,
+      score,
+      matchedOriginal,
+      matchedExpanded: expandedTerms.filter((w) => normalizedContent.includes(w)).length,
     };
   });
 
-  return scoredChunks
-    .filter(chunk => chunk.score > 0)
+  // ── Step 6: Filter, sort, and merge adjacent chunks ────────────────────
+  const relevant = scoredChunks
+    .filter((chunk) => chunk.score > 0)
     .sort((a, b) => {
-        if (b.score != a.score) {
-            return b.score - a.score;
-        }
-        if (b.matchedWords != a.matchedWords) {
-            return b.matchedWords - a.matchedWords;
-        }
-        return a.chunkIndex - b.chunkIndex;
-    })
-    .slice(0, maxChunks);
+      // Primary: score
+      if (b.score !== a.score) return b.score - a.score;
+      // Secondary: more matched original terms
+      if (b.matchedOriginal !== a.matchedOriginal) return b.matchedOriginal - a.matchedOriginal;
+      // Tertiary: earlier chunk
+      return a.chunkIndex - b.chunkIndex;
+    });
+
+  if (relevant.length === 0) {
+    // No matches at all — return first few chunks as fallback context
+    return chunks.slice(0, Math.min(3, maxChunks)).map((chunk) => ({
+      content: chunk.content,
+      chunkIndex: chunk.chunkIndex,
+      pageNumber: chunk.pageNumber,
+      heading: chunk.heading || "",
+      _id: chunk._id,
+    }));
+  }
+
+  // Take top candidates and merge adjacent ones for context continuity
+  const topCandidates = relevant.slice(0, maxChunks + 2);
+  const merged = mergeAdjacentChunks(topCandidates, chunks, maxChunks);
+
+  return merged;
 };
