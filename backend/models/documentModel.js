@@ -42,6 +42,10 @@ const documentSchema = new mongoose.Schema(
           type: Number,
           required: true,
         },
+        heading: {
+          type: String,
+          default: "",
+        },
       },
     ],
     uploadDate: {

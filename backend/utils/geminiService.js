@@ -311,25 +311,64 @@ export const generateSummary = async (text) => {
 //   }
 // };
 
-export const chatWithContext = async (question, chunks) => {
+/**
+ * Chat with document context — enhanced with conversation history and semantic prompting.
+ * @param {string} question - User's question
+ * @param {Array<Object>} chunks - Relevant document chunks
+ * @param {Object} options - Additional options
+ * @param {Array<{role: string, content: string}>} options.chatHistory - Recent conversation messages
+ * @param {string} options.documentTitle - Title of the document for contextual grounding
+ * @returns {Promise<string>} - AI's response
+ */
+export const chatWithContext = async (question, chunks, options = {}) => {
   try {
+    const { chatHistory = [], documentTitle = "" } = options;
+
     if (!Array.isArray(chunks) || chunks.length === 0) {
-      return "I couldn't find relevant information in the document to answer that question.";
+      return "I couldn't find relevant information in the document to answer that question. Try rephrasing your question or asking about a specific topic covered in the document.";
     }
 
+    // Build context from chunks with section labels
     const context = chunks
-      .map((c, i) => `[Chunk ${i + 1}]\n${c?.content || ""}`)
-      .join("\n\n");
+      .map((c, i) => {
+        const heading = c?.heading ? ` (${c.heading})` : "";
+        return `[Section ${i + 1}${heading}]\n${c?.content || ""}`;
+      })
+      .join("\n\n---\n\n");
 
-    const prompt = `Based on the following context from a document, answer the user's question.
+    // Build conversation history context (last few turns for continuity)
+    let conversationContext = "";
+    if (chatHistory.length > 0) {
+      const recentMessages = chatHistory.slice(-6); // Last 3 exchanges (6 messages)
+      conversationContext = "\n\nPrevious conversation:\n" +
+        recentMessages
+          .map((msg) => `${msg.role === "user" ? "Student" : "Tutor"}: ${msg.content}`)
+          .join("\n") +
+        "\n";
+    }
 
-If the answer is not present in the context, say that the information is not available.
+    // Build the document title context
+    const titleContext = documentTitle
+      ? `\nDocument Title: "${documentTitle}"\n`
+      : "";
 
-Context:
+    const prompt = `You are an intelligent document tutor helping a student study. Your role is to answer questions based on the provided document context accurately and helpfully.
+
+INSTRUCTIONS:
+- Answer based ONLY on the provided document context below. Do not use external knowledge.
+- Focus on SEMANTIC MEANING, not just keyword matching. If the student asks "What is this about?" or "What is the purpose?", look for definitions, objectives, introductions, and problem statements in the context.
+- If the student refers to "this project", "this app", "this system", or "it" — they are referring to the document topic${documentTitle ? ` ("${documentTitle}")` : ""}.
+- If the question is a follow-up to the previous conversation, use the conversation history to understand what "it", "this", "that", etc. refer to.
+- If the answer is partially available in the context, provide what you can find and note that some details may be in other sections.
+- If the answer is genuinely not in the provided context, clearly state: "This information doesn't appear to be covered in the provided document sections."
+- Do NOT hallucinate or invent facts not present in the context.
+- Use clear markdown formatting: headings, bullet points, and bold text where appropriate.
+- Be concise but thorough — provide a complete answer without unnecessary repetition.
+${titleContext}${conversationContext}
+Document Context:
 ${context}
 
-Question:
-${question}
+Student's Question: ${question}
 
 Answer:`;
 
@@ -340,7 +379,8 @@ Answer:`;
 
     const generatedText =
       response?.candidates?.[0]?.content?.parts?.[0]?.text ||
-      "Sorry, I couldn't generate an answer.";
+      response?.text ||
+      "Sorry, I couldn't generate an answer. Please try again.";
 
     return generatedText;
   } catch (error) {

@@ -3,7 +3,7 @@ import Flashcard from "../models/flashcardModel.js";
 import Quiz from "../models/quizModel.js";
 import ChatHistory from "../models/chatHistoryModel.js";
 import * as geminiService from "../utils/geminiService.js";
-import { findRelevantChunks } from "../utils/textChunker.js";
+import { findRelevantChunks, chunkText } from "../utils/textChunker.js";
 
 // @desc    Generate flashcards from a document
 // @route   POST /api/ai/generate-flashcards
@@ -195,15 +195,39 @@ export const chat = async (req, res, next) => {
       });
     }
 
-    // Find relevant chunks for the question
-    const relevantChunks = await findRelevantChunks(
-      document.chunks,
-      question,
-      3
-    );
-    const chunkIndices = relevantChunks.map((c) => c.chunkIndex);
+    // ── Smart re-chunking: detect broken chunks and re-process ──────────
+    // The old chunker had a bug that destroyed whitespace. If chunks seem
+    // broken (e.g., no spaces in content), re-chunk from extractedText.
+    let chunks = document.chunks;
+    if (chunks && chunks.length > 0) {
+      const sampleContent = chunks[0].content || "";
+      const wordCount = sampleContent.split(/\s+/).length;
+      const charCount = sampleContent.length;
 
-    // Get or Create chat history
+      // If a chunk has many chars but very few words, it's likely broken
+      // (the old bug collapsed all spaces, creating one giant "word")
+      if (charCount > 100 && wordCount < 5) {
+        console.log(`[AI Chat] Detected broken chunks for document ${documentId}, re-chunking...`);
+        if (document.extractedText && document.extractedText.trim().length > 0) {
+          chunks = chunkText(document.extractedText, 300, 75);
+
+          // Persist the fixed chunks back to the document (background, non-blocking)
+          Document.findByIdAndUpdate(documentId, { chunks }).catch((err) => {
+            console.error("Failed to persist re-chunked document:", err);
+          });
+        }
+      }
+    } else if (document.extractedText && document.extractedText.trim().length > 0) {
+      // No chunks at all — generate them
+      console.log(`[AI Chat] No chunks found for document ${documentId}, generating...`);
+      chunks = chunkText(document.extractedText, 300, 75);
+
+      Document.findByIdAndUpdate(documentId, { chunks }).catch((err) => {
+        console.error("Failed to persist generated chunks:", err);
+      });
+    }
+
+    // ── Get or Create chat history ──────────────────────────────────────
     let chatHistory = await ChatHistory.findOne({
       userId: req.user._id,
       documentId: document._id,
@@ -217,13 +241,42 @@ export const chat = async (req, res, next) => {
       });
     }
 
-    // Generate AI response using Gemini
+    // ── Build enhanced query for retrieval ───────────────────────────────
+    // For follow-up questions (short, vague), combine with previous question
+    // for better chunk retrieval. E.g., "Why?" → "Why [previous topic]?"
+    let retrievalQuery = question;
+    const recentMessages = chatHistory.messages || [];
+
+    if (recentMessages.length >= 2 && question.split(/\s+/).length <= 6) {
+      // Short follow-up question — find the last user message for context
+      const lastUserMsg = [...recentMessages]
+        .reverse()
+        .find((m) => m.role === "user");
+      if (lastUserMsg) {
+        retrievalQuery = `${lastUserMsg.content} ${question}`;
+      }
+    }
+
+    // ── Find relevant chunks with document title context ────────────────
+    const relevantChunks = findRelevantChunks(
+      chunks,
+      retrievalQuery,
+      5,
+      document.title
+    );
+    const chunkIndices = relevantChunks.map((c) => c.chunkIndex);
+
+    // ── Generate AI response with conversation context ──────────────────
     const answer = await geminiService.chatWithContext(
       question,
-      relevantChunks
+      relevantChunks,
+      {
+        chatHistory: recentMessages.slice(-6), // Last 3 conversation turns
+        documentTitle: document.title,
+      }
     );
 
-    // Save conversation
+    // ── Save conversation ───────────────────────────────────────────────
     chatHistory.messages.push(
       {
         role: "user",
