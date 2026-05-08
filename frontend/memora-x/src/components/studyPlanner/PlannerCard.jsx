@@ -121,7 +121,7 @@ const PlannerCard = ({ item, onGenerate }) => {
             {planner.studyPlan && planner.studyPlan.length > 0 && (
               <div className="flex items-center gap-1.5">
                 <CalendarDays className="w-3.5 h-3.5" />
-                {planner.studyPlan.length} Weeks
+                {planner.studyPlan.length} Modules
               </div>
             )}
           </div>

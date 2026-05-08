@@ -31,13 +31,18 @@ const StudyPlannerPage = () => {
 
   useEffect(() => {
     fetchData();
-    // Poll every 5s if there are any planners in "generating" state
-    const interval = setInterval(() => {
-      if (planners.some(p => p.status === "generating")) {
+  }, []);
+
+  useEffect(() => {
+    let interval;
+    if (planners.some(p => p.status === "generating")) {
+      interval = setInterval(() => {
         fetchData();
-      }
-    }, 5000);
-    return () => clearInterval(interval);
+      }, 5000);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
   }, [planners]);
 
   const handleGenerateFromDoc = async (documentId) => {
