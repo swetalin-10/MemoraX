@@ -174,8 +174,8 @@ const processPDF = async (documentId, filePath) => {
   try {
     const { text } = await extractTextFromPDF(filePath);
 
-    // Create Chunks
-    const chunks = chunkText(text, 500, 50);
+    // Create Chunks with semantic-friendly settings
+    const chunks = chunkText(text, 300, 75);
 
     // Update Document
     await Document.findByIdAndUpdate(documentId, {
