@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, Trash2 } from "lucide-react";
+import { ArrowLeft, Trash2, Sparkles } from "lucide-react";
 import studyPlannerService from "../../services/studyPlannerService";
 import Spinner from "../../components/common/Spinner";
 import RoadmapViewer from "../../components/studyPlanner/RoadmapViewer";
@@ -13,6 +13,7 @@ const PlannerDetailPage = () => {
   const [planner, setPlanner] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
     const fetchPlanner = async () => {
@@ -51,14 +52,16 @@ const PlannerDetailPage = () => {
   if (!planner) return <div className="text-center p-10 text-neutral-400">Planner not found</div>;
 
   return (
-    <div className="flex flex-col h-[calc(100vh-8rem)]">
+    <div className="flex flex-col h-[calc(100vh-6rem)] relative">
       {/* Header Area */}
-      <div className="flex items-center justify-between mb-4 shrink-0">
+      <div className="flex items-center justify-between mb-6 shrink-0">
         <Link
           to="/study-planner"
           className="inline-flex items-center gap-2 text-sm text-neutral-400 hover:text-white transition-colors"
         >
-          <ArrowLeft size={16} />
+          <div className="p-1.5 rounded-lg bg-neutral-900 border border-neutral-800 group-hover:border-neutral-700">
+            <ArrowLeft size={16} />
+          </div>
           Back to Planners
         </Link>
         
@@ -72,26 +75,30 @@ const PlannerDetailPage = () => {
         </button>
       </div>
 
-      {/* Main Layout Area */}
-      <div className="flex flex-col lg:flex-row gap-6 h-full overflow-hidden">
-        
-        {/* Left Side: Roadmap Viewer (Takes up ~65% of space) */}
-        <div className="flex-1 lg:w-2/3 h-full min-h-[500px] overflow-hidden">
-          <RoadmapViewer 
-            planner={planner} 
-            onUpdate={handlePlannerUpdate} 
-          />
-        </div>
-
-        {/* Right Side: AI Assistant Chat (Takes up ~35% of space) */}
-        <div className="lg:w-1/3 h-[500px] lg:h-full shrink-0">
-          <PlannerChat 
-            planner={planner} 
-            onUpdate={handlePlannerUpdate} 
-          />
-        </div>
-
+      {/* Main Layout Area - Roadmap Takes Full Width */}
+      <div className="flex-1 overflow-hidden max-w-5xl mx-auto w-full relative">
+        <RoadmapViewer 
+          planner={planner} 
+          onUpdate={handlePlannerUpdate} 
+        />
       </div>
+
+      {/* Floating Action Button for AI Assistant */}
+      <button
+        onClick={() => setIsSidebarOpen(true)}
+        className="fixed bottom-6 right-6 z-50 flex items-center gap-2.5 px-4 py-2.5 bg-neutral-900 border border-neutral-800 text-neutral-200 rounded-full text-sm font-medium hover:text-white hover:bg-neutral-800 hover:border-primary/50 transition-all duration-300 shadow-[0_8px_20px_rgba(0,0,0,0.5)] group"
+      >
+        <Sparkles className="w-4 h-4 text-primary group-hover:animate-pulse" />
+        Customize with AI
+      </button>
+
+      {/* Sliding AI Sidebar overlay */}
+      <PlannerChat 
+        planner={planner} 
+        onUpdate={handlePlannerUpdate} 
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+      />
     </div>
   );
 };

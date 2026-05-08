@@ -1,11 +1,16 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Route, Clock, BarChart, CalendarDays, ArrowRight } from "lucide-react";
+import { Route, Clock, CalendarDays, ArrowRight, FileText, Sparkles, Plus } from "lucide-react";
 import moment from "moment";
 
-const PlannerCard = ({ planner }) => {
-  const isGenerating = planner.status === "generating";
-  const isFailed = planner.status === "failed";
+const PlannerCard = ({ item, onGenerate }) => {
+  // Determine item type
+  const isDocument = item.type === "document";
+  const planner = isDocument ? null : item;
+  
+  const isGenerating = planner?.status === "generating";
+  const isFailed = planner?.status === "failed";
+  const isReady = planner?.status === "ready";
 
   const getDifficultyColor = (difficulty) => {
     switch (difficulty) {
@@ -21,18 +26,63 @@ const PlannerCard = ({ planner }) => {
   };
 
   const getProgress = () => {
-    if (!planner.studyPlan || planner.studyPlan.length === 0) return 0;
+    if (!planner || !planner.studyPlan || planner.studyPlan.length === 0) return 0;
     const completed = planner.studyPlan.filter((w) => w.isCompleted).length;
     return Math.round((completed / planner.studyPlan.length) * 100);
   };
 
-  return (
-    <div className="flex flex-col p-5 rounded-2xl border border-neutral-800 bg-neutral-900 hover:bg-neutral-800 hover:border-neutral-700 transition-all duration-200">
-      <div className="flex justify-between items-start mb-4">
-        <div className="p-2.5 rounded-xl bg-gradient-to-br from-primary/20 to-[#1E3EDC]/20 border border-primary/20">
-          <Route className="w-5 h-5 text-primary" />
+  // State 1: Ready to Generate (Detected Syllabus Document)
+  if (isDocument) {
+    return (
+      <div className="group flex flex-col p-5 rounded-2xl border border-primary/30 bg-primary/5 hover:bg-primary/10 hover:border-primary/50 transition-all duration-300 relative overflow-hidden">
+        {/* Subtle glow effect */}
+        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
+
+        <div className="flex justify-between items-start mb-4 relative z-10">
+          <div className="p-2.5 rounded-xl bg-gradient-to-br from-primary/30 to-[#1E3EDC]/30 border border-primary/40 text-primary shadow-sm">
+            <FileText className="w-5 h-5" />
+          </div>
+          <div className="px-2.5 py-1 rounded-lg border border-primary/30 bg-primary/20 text-primary-dark font-semibold text-xs flex items-center gap-1.5 shadow-sm">
+            <Sparkles className="w-3 h-3" />
+            Ready to Generate
+          </div>
         </div>
-        {!isGenerating && !isFailed && (
+
+        <div className="flex-1 relative z-10">
+          <h3 className="text-lg font-semibold text-white mb-1 line-clamp-2" title={item.title}>
+            {item.title}
+          </h3>
+          <p className="text-xs text-primary/80 mb-5">
+            Detected as syllabus/course outline
+          </p>
+          <div className="text-sm text-neutral-400 mb-6 flex items-center gap-2">
+            <Clock className="w-4 h-4" />
+            Uploaded {moment(item.uploadDate).format("MMM D, YYYY")}
+          </div>
+        </div>
+
+        <div className="pt-4 border-t border-primary/20 relative z-10">
+          <button
+            onClick={() => onGenerate(item._id)}
+            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary-dark text-white text-sm font-medium rounded-xl transition-all shadow-md shadow-primary/20"
+          >
+            <Plus className="w-4 h-4" />
+            Generate Roadmap
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // State 2: Generated Planner (Ready, Generating, or Failed)
+  return (
+    <div className="flex flex-col p-5 rounded-2xl border border-neutral-800 bg-neutral-900 hover:bg-neutral-800 hover:border-neutral-700 transition-all duration-200 group">
+      <div className="flex justify-between items-start mb-4">
+        <div className="p-2.5 rounded-xl bg-neutral-800 group-hover:bg-neutral-700 border border-neutral-700 transition-colors">
+          <Route className="w-5 h-5 text-neutral-300" />
+        </div>
+        
+        {isReady && (
           <div className={`px-2.5 py-1 rounded-lg border text-xs font-medium capitalize ${getDifficultyColor(planner.difficulty)}`}>
             {planner.difficulty}
           </div>
@@ -60,7 +110,7 @@ const PlannerCard = ({ planner }) => {
           </p>
         )}
 
-        {!isGenerating && !isFailed && (
+        {isReady && (
           <div className="flex flex-wrap gap-3 mb-5 text-xs text-neutral-400">
             {planner.estimatedDuration && (
               <div className="flex items-center gap-1.5">
@@ -77,7 +127,7 @@ const PlannerCard = ({ planner }) => {
           </div>
         )}
 
-        {!isGenerating && !isFailed && (
+        {isReady && (
           <div className="mb-5">
             <div className="flex justify-between text-xs mb-1.5">
               <span className="text-neutral-400">Progress</span>
