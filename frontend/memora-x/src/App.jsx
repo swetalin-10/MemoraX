@@ -20,6 +20,8 @@ import QuizzesListPage from "./pages/Quizzes/QuizzesListPage";
 import ProfilePage from "./pages/Profile/ProfilePage";
 import CommunityPage from "./pages/Community/CommunityPage";
 import SharePostPage from "./pages/Community/SharePostPage";
+import StudyPlannerPage from "./pages/StudyPlanner/StudyPlannerPage";
+import PlannerDetailPage from "./pages/StudyPlanner/PlannerDetailPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import { useAuth } from "./context/AuthContext";
@@ -83,6 +85,8 @@ const App = () => {
           <Route path="/quizzes" element={<QuizzesListPage />} />
           <Route path="/quizzes/:quizId" element={<QuizTakePage />} />
           <Route path="/quizzes/:quizId/results" element={<QuizResultPage />} />
+          <Route path="/study-planner" element={<StudyPlannerPage />} />
+          <Route path="/study-planner/:id" element={<PlannerDetailPage />} />
           <Route path="/community" element={<CommunityPage />} />
           <Route path="/profile" element={<ProfilePage />} />
         </Route>

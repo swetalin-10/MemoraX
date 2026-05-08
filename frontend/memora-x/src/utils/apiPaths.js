@@ -75,4 +75,13 @@ export const API_PATHS = {
     GET: (documentId) => `/api/annotations/${documentId}`,
     SAVE: (documentId) => `/api/annotations/${documentId}`,
   },
+  STUDY_PLANNER: {
+    DETECT_SYLLABUS: "/api/study-planner/detect-syllabus",
+    GENERATE: "/api/study-planner/generate",
+    GET_ALL: "/api/study-planner",
+    GET_BY_ID: (id) => `/api/study-planner/${id}`,
+    CHAT: (id) => `/api/study-planner/${id}/chat`,
+    TOGGLE_WEEK: (id, weekIndex) => `/api/study-planner/${id}/toggle/${weekIndex}`,
+    DELETE: (id) => `/api/study-planner/${id}`,
+  },
 };
