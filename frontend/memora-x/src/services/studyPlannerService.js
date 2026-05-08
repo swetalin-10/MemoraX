@@ -26,7 +26,7 @@ const generatePlanner = async (documentId) => {
 
 const getPlanners = async () => {
   try {
-    const response = await axiosInstance.get(API_PATHS.STUDY_PLANNER.GET_ALL);
+    const response = await axiosInstance.get(`${API_PATHS.STUDY_PLANNER.GET_ALL}?t=${Date.now()}`);
     return response.data;
   } catch (error) {
     throw error.response?.data || { message: "Failed to fetch planners" };
