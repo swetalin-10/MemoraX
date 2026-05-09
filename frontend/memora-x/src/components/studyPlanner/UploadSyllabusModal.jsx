@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { UploadCloud, X, File, Sparkles, Loader2, BookOpen } from "lucide-react";
+import Button from "../common/Button";
 
 const UploadSyllabusModal = ({ isOpen, onClose, onUpload }) => {
   const [file, setFile] = useState(null);
@@ -59,12 +60,12 @@ const UploadSyllabusModal = ({ isOpen, onClose, onUpload }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fadeIn">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm backdrop-enter">
       {/* Outer wrapper with subtle animated glow */}
-      <div className="relative w-full max-w-[480px]">
+      <div className="relative w-full max-w-[480px] modal-enter">
         <div className="absolute -inset-0.5 bg-gradient-to-r from-primary via-indigo-500 to-purple-600 rounded-[1.5rem] blur opacity-20 animate-pulse pointer-events-none"></div>
         
-        <div className="relative bg-[#111113] border border-white/[0.08] rounded-3xl shadow-2xl overflow-hidden animate-zoomIn flex flex-col">
+        <div className="relative bg-neutral-900 border border-neutral-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col">
           
           {/* Header */}
           <div className="flex items-center justify-between px-6 py-5 border-b border-white/[0.04]">
@@ -163,35 +164,23 @@ const UploadSyllabusModal = ({ isOpen, onClose, onUpload }) => {
 
             {/* Action Buttons */}
             <div className="flex justify-end gap-3 pt-2">
-              <button
+              <Button
                 type="button"
                 onClick={handleClose}
                 disabled={isLoading}
-                className="px-5 py-3 text-sm font-medium text-neutral-400 hover:text-white hover:bg-neutral-800 rounded-xl transition-colors disabled:opacity-50"
+                variant="ghost"
               >
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
                 type="submit"
                 disabled={!file || !title.trim() || isLoading}
-                className="relative flex items-center justify-center gap-2 px-6 py-3 text-sm font-medium text-white bg-primary hover:bg-primary-dark disabled:opacity-70 disabled:cursor-not-allowed rounded-xl transition-all shadow-[0_8px_20px_rgba(61,94,229,0.3)] overflow-hidden"
+                loading={isLoading}
+                variant="primary"
+                icon={!isLoading && <Sparkles className="w-4 h-4 text-white/80" />}
               >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Generating...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-4 h-4 text-white/80" />
-                    Generate Roadmap
-                  </>
-                )}
-                {/* Button shine effect */}
-                {!isLoading && (
-                  <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:animate-shimmer pointer-events-none"></div>
-                )}
-              </button>
+                Generate Roadmap
+              </Button>
             </div>
           </form>
         </div>

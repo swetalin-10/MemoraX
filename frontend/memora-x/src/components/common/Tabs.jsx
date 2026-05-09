@@ -1,33 +1,51 @@
-import React from "react";
+import React, { useRef, useEffect, useState } from "react";
 
 const Tabs = ({ tabs, activeTab, setActiveTab }) => {
+  const tabRefs = useRef({});
+  const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0 });
+
+  useEffect(() => {
+    const activeEl = tabRefs.current[activeTab];
+    if (activeEl) {
+      setIndicatorStyle({
+        left: activeEl.offsetLeft,
+        width: activeEl.offsetWidth,
+      });
+    }
+  }, [activeTab, tabs]);
+
   return (
     <div className="w-full">
       {/* Tabs Header */}
       <div className="relative border-b border-neutral-800">
-        <nav className="flex gap-2">
+        <nav className="flex gap-1 tabs-scroll">
           {tabs.map((tab) => (
             <button
               key={tab.name}
+              ref={(el) => (tabRefs.current[tab.name] = el)}
               onClick={() => setActiveTab(tab.name)}
-              className={`relative pb-4 px-2 md:px-6 text-sm font-semibold transition-all duration-200 ${
+              className={`relative pb-3.5 px-4 md:px-5 text-sm font-medium transition-colors duration-200 whitespace-nowrap ${
                 activeTab === tab.name
                   ? "text-white"
-                  : "text-neutral-400 hover:text-neutral-200"
+                  : "text-neutral-500 hover:text-neutral-300"
               }`}
             >
-              <span className="relative z-10">{tab.label}</span>
-
-              {activeTab === tab.name && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white rounded-full" />
-              )}
-
-              {activeTab === tab.name && (
-                <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent rounded-t-xl -z-10" />
-              )}
+              <span className="relative z-10 flex items-center gap-2">
+                {tab.icon && <tab.icon size={15} />}
+                {tab.label}
+              </span>
             </button>
           ))}
         </nav>
+
+        {/* Animated underline indicator */}
+        <div
+          className="absolute bottom-0 h-0.5 bg-primary rounded-full transition-all duration-300 ease-out"
+          style={{
+            left: indicatorStyle.left,
+            width: indicatorStyle.width,
+          }}
+        />
       </div>
 
       {/* Tabs Content */}
@@ -37,7 +55,7 @@ const Tabs = ({ tabs, activeTab, setActiveTab }) => {
             key={tab.name}
             className={`w-full ${
               activeTab === tab.name
-                ? "block animate-in fade-in duration-300"
+                ? "block animate-fadeIn"
                 : "hidden"
             }`}
           >

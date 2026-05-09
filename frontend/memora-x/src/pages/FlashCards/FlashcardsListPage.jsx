@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus } from 'lucide-react';
+import { Plus, BookOpen, Trash2, Loader2, X } from 'lucide-react';
 import flashcardService from '../../services/flashcardService';
 import PageHeader from "../../components/common/PageHeader";
 import Spinner from '../../components/common/Spinner';
 import EmptyState from '../../components/common/EmptyState';
 import FlashcardSetCard from "../../components/flashcards/FlashcardSetCard";
 import DocumentSelectModal from "../../components/common/DocumentSelectModal";
+import Button from "../../components/common/Button";
 import toast from 'react-hot-toast';
 
 const FlashcardsListPage = () => {
@@ -67,19 +68,20 @@ const FlashcardsListPage = () => {
   };
 
   const renderContent = () => {
-    if (loading) return <Spinner />;
+    if (loading) return <Spinner label="Loading flashcards..." />;
 
     if (!flashcardSets.length) {
       return (
         <EmptyState
           title="No Flashcard Sets"
-          description="Start by creating one!"
+          description="Generate flashcards from any document to start studying with spaced repetition."
+          icon={BookOpen}
         />
       );
     }
 
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
         {flashcardSets.map((set) => (
           <FlashcardSetCard
             key={set._id}
@@ -93,45 +95,48 @@ const FlashcardsListPage = () => {
 
   return (
     <div>
-      <PageHeader title="All Flashcard Sets">
-        <button
-          onClick={() => setShowModal(true)}
-          className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-md hover:shadow-blue-500/20 transition"
-        >
+      <PageHeader title="All Flashcard Sets" subtitle="Study and review your AI-generated flashcards">
+        <Button onClick={() => setShowModal(true)}>
           <Plus className="w-4 h-4" /> New Flashcards
-        </button>
+        </Button>
       </PageHeader>
 
       {renderContent()}
 
       {/* ✅ CUSTOM DELETE MODAL */}
       {showConfirm && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-neutral-900 border border-neutral-800 rounded-2xl shadow-xl w-full max-w-md p-6">
-            
-            <h2 className="text-lg font-semibold text-white mb-2">
-              Delete Flashcard Set
-            </h2>
-            <p className="text-sm text-neutral-400 mb-6">
-              Are you sure you want to delete this set? This action cannot be undone.
-            </p>
-
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => setShowConfirm(false)}
-                className="px-4 py-2 rounded-lg text-sm font-medium text-neutral-400 hover:text-white hover:bg-neutral-800"
-              >
-                Cancel
-              </button>
-
-              <button
-                onClick={confirmDelete}
-                className="px-4 py-2 rounded-lg text-sm font-semibold bg-red-500 hover:bg-red-600 text-white"
-              >
-                {deleting ? "Deleting..." : "Delete"}
-              </button>
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 px-4">
+          <div className="bg-neutral-900 border border-neutral-800 rounded-2xl shadow-2xl w-full max-w-md p-6 modal-enter">
+            <div className="mb-6">
+              <div className="w-12 h-12 rounded-xl bg-red-500/15 flex items-center justify-center mb-4">
+                <Trash2 className="w-6 h-6 text-red-400" strokeWidth={2} />
+              </div>
+              <h2 className="text-lg font-semibold text-white mb-2">
+                Delete Flashcard Set
+              </h2>
+              <p className="text-sm text-neutral-400">
+                Are you sure you want to delete this set? This action cannot be undone.
+              </p>
             </div>
 
+            <div className="flex gap-3">
+              <Button
+                variant="secondary"
+                onClick={() => setShowConfirm(false)}
+                disabled={deleting}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="danger"
+                onClick={confirmDelete}
+                loading={deleting}
+                className="flex-1"
+              >
+                {deleting ? "Deleting..." : "Delete"}
+              </Button>
+            </div>
           </div>
         </div>
       )}

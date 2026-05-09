@@ -359,7 +359,7 @@ const DocumentListPage = () => {
   return (
     <div className="min-h-screen">
       {/* {Subtle background pattern} */}
-      <div className="absolute inset-0 bg-[radial-gradient(#262626_1px,transparent_1px)] bg-size-[16px_16px] opacity-30 pointer-events-none " />
+      <div className="absolute inset-0 bg-[radial-gradient(#262626_1px,transparent_1px)] bg-[size:16px_16px] opacity-30 pointer-events-none" />
 
       <div className="relative max-w-7xl mx-auto">
         {/* Header */}
@@ -607,7 +607,7 @@ const DocumentListPage = () => {
             {/* {Close button} */}
             <button
               onClick={() => setIsDeleteModalOpen(false)}
-              className="absolute top-6 right-6 w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all duration-200"
+              className="absolute top-6 right-6 w-8 h-8 flex items-center justify-center rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-800 transition-all duration-200"
             >
               <X className="w-5 h-5" strokeWidth={2} />
             </button>

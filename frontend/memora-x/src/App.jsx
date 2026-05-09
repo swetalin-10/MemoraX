@@ -48,15 +48,15 @@ const App = () => {
       >
         <div
           style={{
-            width: "40px",
-            height: "40px",
-            border: "3px solid rgba(139, 92, 246, 0.2)",
-            borderTopColor: "#8b5cf6",
+            width: "36px",
+            height: "36px",
+            border: "3px solid rgba(61, 94, 229, 0.15)",
+            borderTopColor: "#3D5EE5",
             borderRadius: "50%",
             animation: "spin 0.8s linear infinite",
           }}
         />
-        <p style={{ color: "#a3a3a3", fontSize: "0.875rem", margin: 0 }}>
+        <p style={{ color: "#737373", fontSize: "0.8125rem", margin: 0, letterSpacing: "0.02em" }}>
           Loading MemoraX…
         </p>
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>

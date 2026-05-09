@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import Spinner from "../../components/common/Spinner";
+import Spinner, { SkeletonStatCard, SkeletonCardGrid } from "../../components/common/Spinner";
 import progressService from "../../services/progressService";
 import toast from "react-hot-toast";
 import {
@@ -36,11 +36,29 @@ const DashboardPage = () => {
     fetchDashboardData();
   }, []);
 
-  if (loading) return <Spinner />;
+  if (loading) {
+    return (
+      <div className="max-w-7xl mx-auto space-y-8">
+        <div className="space-y-2">
+          <div className="skeleton-line w-48 h-8" />
+          <div className="skeleton-line w-64 h-4" />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <SkeletonStatCard key={i} />
+          ))}
+        </div>
+        <SkeletonCardGrid count={3} cols="grid-cols-1 lg:grid-cols-3" />
+      </div>
+    );
+  }
 
   if (!dashboardData) {
     return (
-      <div className="flex items-center justify-center h-full">
+      <div className="flex flex-col items-center justify-center h-full gap-3">
+        <div className="w-14 h-14 rounded-2xl bg-neutral-800/80 flex items-center justify-center">
+          <BrainCircuit className="w-6 h-6 text-neutral-500" />
+        </div>
         <p className="text-neutral-500 text-sm">
           No dashboard data available
         </p>
@@ -86,44 +104,35 @@ const DashboardPage = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto">
+    <div className="max-w-7xl mx-auto">
 
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-semibold text-white">
+        <h1 className="text-2xl md:text-3xl font-semibold text-white tracking-tight">
           Dashboard
         </h1>
-        <p className="text-neutral-400 mt-1 text-sm">
+        <p className="text-neutral-400 mt-1.5 text-sm">
           Track your learning progress and insights
-        </p>
-      </div>
-      
-      {/* Analytics Overview */}
-      <div className="mb-6">
-        <h2 className="text-2xl font-medium text-white tracking-tight">
-          Analytics Overview
-        </h2>
-        <p className="text-neutral-400 text-sm mt-1">
-          Track your learning progress and study habits.
         </p>
       </div>
 
       {/* Row 1: Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-8">
-        {analyticsStats.map((stat) => (
-          <StatCard
-            key={stat.title}
-            title={stat.title}
-            value={stat.value}
-            icon={stat.icon}
-            trend={stat.trend}
-            accentColor={stat.accentColor}
-          />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5 mb-8">
+        {analyticsStats.map((stat, index) => (
+          <div key={stat.title} style={{ animationDelay: `${index * 60}ms` }} className="animate-fadeIn">
+            <StatCard
+              title={stat.title}
+              value={stat.value}
+              icon={stat.icon}
+              trend={stat.trend}
+              accentColor={stat.accentColor}
+            />
+          </div>
         ))}
       </div>
 
       {/* Row 2: Study Activity (larger) & Quiz Performance */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-8">
         <div className="lg:col-span-2">
           <ActivityChart data={dashboardData.studyActivity} />
         </div>
@@ -134,7 +143,7 @@ const DashboardPage = () => {
       </div>
 
       {/* Row 3: Flashcard Mastery & Weekly Consistency */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-8">
         <AnalyticsCard title="Flashcard Mastery">
           <FlashcardPieChart data={dashboardData.flashcardStats} />
         </AnalyticsCard>
@@ -144,17 +153,18 @@ const DashboardPage = () => {
         </AnalyticsCard>
       </div>
 
-
-
       {/* Recent Activity */}
-      <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-8">
+      <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 md:p-8">
         <div className="flex items-center gap-3 mb-6">
           <div className="w-10 h-10 rounded-xl bg-neutral-800 flex items-center justify-center">
             <Clock className="w-5 h-5 text-neutral-400" />
           </div>
-          <h3 className="text-xl font-semibold text-white">
-            Recent Activity
-          </h3>
+          <div>
+            <h3 className="text-lg font-semibold text-white">
+              Recent Activity
+            </h3>
+            <p className="text-xs text-neutral-500">Your latest interactions</p>
+          </div>
         </div>
 
         {dashboardData?.recentActivity?.documents?.length > 0 ||
@@ -184,21 +194,21 @@ const DashboardPage = () => {
                 <a
                   key={activity.id || index}
                   href={activity.link}
-                  className="group flex flex-col p-5 rounded-2xl border border-neutral-800 bg-neutral-900 hover:bg-neutral-800 transition-all duration-200 hover:border-neutral-700 shadow-sm"
+                  className="group flex flex-col p-4 rounded-xl border border-neutral-800 bg-neutral-900 hover:bg-neutral-800/80 transition-all duration-200 hover:border-neutral-700"
                 >
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="p-2.5 rounded-xl bg-neutral-800 text-neutral-300 group-hover:text-primary group-hover:bg-primary/10 transition-colors">
-                      {activity.type === "document" ? <FileText size={20} /> : <BrainCircuit size={20} />}
+                  <div className="flex justify-between items-start mb-3">
+                    <div className="p-2 rounded-lg bg-neutral-800 text-neutral-400 group-hover:text-primary group-hover:bg-primary/10 transition-colors duration-200">
+                      {activity.type === "document" ? <FileText size={18} /> : <BrainCircuit size={18} />}
                     </div>
-                    <span className="text-xs font-semibold text-neutral-500">
+                    <span className="text-[11px] font-medium text-neutral-500">
                       {getRelativeTime(activity.timestamp)}
                     </span>
                   </div>
                   <div>
-                    <h4 className="text-sm font-semibold text-white mb-1 truncate">
+                    <h4 className="text-sm font-medium text-white mb-0.5 truncate">
                       {activity.description}
                     </h4>
-                    <p className="text-xs text-neutral-400">
+                    <p className="text-xs text-neutral-500">
                       {activity.type === "document" ? "Accessed Document" : "Attempted Quiz"}
                     </p>
                   </div>
@@ -206,9 +216,13 @@ const DashboardPage = () => {
               ))}
           </div>
         ) : (
-          <p className="text-sm text-neutral-500 text-center py-6">
-            No recent activity yet.
-          </p>
+          <div className="flex flex-col items-center justify-center py-10 text-center">
+            <div className="w-12 h-12 rounded-xl bg-neutral-800 flex items-center justify-center mb-3">
+              <Clock className="w-5 h-5 text-neutral-500" />
+            </div>
+            <p className="text-sm text-neutral-400 font-medium mb-1">No recent activity</p>
+            <p className="text-xs text-neutral-500">Start studying to see your activity here</p>
+          </div>
         )}
       </div>
     </div>

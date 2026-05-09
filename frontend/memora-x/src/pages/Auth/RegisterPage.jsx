@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import authService from "../../services/authService";
 import { BrainCircuit, Mail, Lock, ArrowRight, User } from "lucide-react";
+import Button from "../../components/common/Button";
 import toast from "react-hot-toast";
 
 const RegisterPage = () => {
@@ -50,8 +51,11 @@ const RegisterPage = () => {
   return (
     <div className="relative flex items-center justify-center min-h-screen bg-neutral-900">
       <div className="absolute inset-0 bg-[radial-gradient(#404040_1px,transparent_1px)] bg-[length:16px_16px] opacity-30 pointer-events-none" />
-      <div className="relative w-full max-w-lg px-6">
-        <div className="w-full bg-neutral-900/80 backdrop-blur-xl border border-neutral-700 rounded-3xl shadow-xl shadow-black/50 py-12 px-14">
+      <div className="relative w-full max-w-lg px-6 page-enter">
+        {/* Subtle glow behind card */}
+        <div className="absolute inset-0 bg-primary/5 blur-[100px] rounded-full pointer-events-none" />
+
+        <div className="relative w-full bg-neutral-900/80 backdrop-blur-xl border border-neutral-800/80 rounded-3xl shadow-2xl py-12 px-14">
           {/* Header */}
           <div className="text-center mb-10">
             <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-[#1E3EDC] shadow-xl shadow-primary/50 mb-6 mt-8">
@@ -156,29 +160,26 @@ const RegisterPage = () => {
             )}
 
             {/* Submit Button */}
-            <button
+            <Button
               onClick={handleSubmit}
-              disabled={loading}
-              className="group relative w-full h-12 bg-gradient-to-r from-primary to-blue-600 hover:from-primary/80 hover:to-blue-600 active:scale-[0.98] text-white text-sm flex justify-center items-center rounded-xl transition-all duration-200 font-semibold focus:outline-none focus:ring-4 focus:ring-primary/50 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 shadow-lg shadow-primary/30 overflow-hidden"
+              loading={loading}
+              className="w-full h-12 mt-2 group relative overflow-hidden"
             >
               <span className="relative z-10 flex items-center justify-center gap-2">
-                {loading ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Creating account...
-                  </>
-                ) : (
+                {loading ? "Creating account..." : (
                   <>
                     Create account
                     <ArrowRight
-                      className="w-4 h-4 group:hover:translate-x-1 transition-transform duration-200"
+                      className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-200"
                       strokeWidth={2.5}
                     />
                   </>
                 )}
               </span>
-              <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
-            </button>
+              {!loading && (
+                <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+              )}
+            </Button>
           </div>
 
           {/* Footer */}

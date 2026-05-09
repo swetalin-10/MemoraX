@@ -1,25 +1,24 @@
 import React from 'react'
 import { FileText, Plus } from 'lucide-react'
+import Button from './Button'
 
-const EmptyState = ({onActionClick, title, description, buttonText}) => {
-    return (
-    <div className="flex flex-col items-center justify-center py-16 px-6 text-center bg-neutral-900 border border-dashed border-neutral-800 rounded-3xl">
-      <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-neutral-800 mb-6">
-        <FileText className="w-8 h-8 text-neutral-500" strokeWidth={2} />
-        </div>
+const EmptyState = ({ onActionClick, title, description, buttonText, icon: CustomIcon }) => {
+  const Icon = CustomIcon || FileText;
+
+  return (
+    <div className="flex flex-col items-center justify-center py-20 px-6 text-center animate-fadeIn">
+      <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-neutral-800/80 border border-neutral-700/50 mb-6">
+        <Icon className="w-7 h-7 text-neutral-500" strokeWidth={1.5} />
+      </div>
       <h3 className="text-lg font-semibold text-white mb-2">{title}</h3>
       <p className="text-sm text-neutral-500 mb-8 max-w-sm leading-relaxed">{description}</p>
       {buttonText && onActionClick && (
-        <button
+        <Button
           onClick={onActionClick}
-          className="group relative inline-flex items-center gap-2 px-6 h-11 bg-linear-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-semibold text-sm rounded-xl transition-all duration-200 shadow-lg shadow-emerald-500/25 active:scale-95 focus:outline-none focus:ring-4 focus:ring-emerald-500/20 overflow-hidden"
+          icon={<Plus className="w-4 h-4" strokeWidth={2.5} />}
         >
-          <span className="relative z-10 flex items-center gap-2">
-            <Plus className="w-4 h-4" strokeWidth={2.5} />
-            {buttonText}
-          </span>
-          <div className="absolute insert-0 bg-linear-to-r from-white/0 via-white/20 t0-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
-        </button>
+          {buttonText}
+        </Button>
       )}
     </div>
   )
