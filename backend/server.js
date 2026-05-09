@@ -18,6 +18,7 @@ import communityRoutes from "./routes/communityRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import annotationRoutes from "./routes/annotationRoutes.js";
 import studyPlannerRoutes from "./routes/studyPlannerRoutes.js";
+import cheatSheetRoutes from "./routes/cheatSheetRoutes.js";
 
 console.log("ENV CHECK:", process.env.CLOUDINARY_API_KEY);
 
@@ -60,6 +61,7 @@ app.use("/api/community", communityRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/annotations", annotationRoutes);
 app.use("/api/study-planner", studyPlannerRoutes);
+app.use("/api/cheatsheets", cheatSheetRoutes);
 
 // Error handler
 app.use(errorHandler);

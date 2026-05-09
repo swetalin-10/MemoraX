@@ -75,6 +75,13 @@ export const API_PATHS = {
     GET: (documentId) => `/api/annotations/${documentId}`,
     SAVE: (documentId) => `/api/annotations/${documentId}`,
   },
+  CHEAT_SHEETS: {
+    GENERATE: (documentId) => `/api/cheatsheets/generate/${documentId}`,
+    GET_FOR_DOCUMENT: (documentId) => `/api/cheatsheets/document/${documentId}`,
+    GET_BY_ID: (id) => `/api/cheatsheets/${id}`,
+    DELETE: (id) => `/api/cheatsheets/${id}`,
+    REGENERATE_SECTION: (id) => `/api/cheatsheets/${id}/regenerate-section`,
+  },
   STUDY_PLANNER: {
     DETECT_SYLLABUS: "/api/study-planner/detect-syllabus",
     GENERATE: "/api/study-planner/generate",
