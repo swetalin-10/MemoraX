@@ -1,10 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { Sparkles, BookOpen, Lightbulb } from "lucide-react";
+import { Sparkles, BookOpen, Lightbulb, ScrollText } from "lucide-react";
 import aiService from "../../services/aiService";
+import cheatSheetService from "../../services/cheatSheetService";
 import toast from "react-hot-toast";
 import MarkdownRenderer from "../common/MarkdownRenderer";
 import Modal from "../common/Modal";
+import CheatSheetModeModal from "../cheatSheets/CheatSheetModeModal";
+import CheatSheetCard from "../cheatSheets/CheatSheetCard";
 
 const AIActions = () => {
   const { id: documentId } = useParams();
@@ -14,6 +17,28 @@ const AIActions = () => {
   const [modalContent, setModalContent] = useState("");
   const [modalTitle, setModalTitle] = useState("");
   const [concept, setConcept] = useState("");
+
+  // Cheat sheet state
+  const [isCheatSheetModalOpen, setIsCheatSheetModalOpen] = useState(false);
+  const [existingCheatSheets, setExistingCheatSheets] = useState([]);
+  const [loadingCheatSheets, setLoadingCheatSheets] = useState(false);
+
+  // Fetch existing cheat sheets for this document
+  const fetchCheatSheets = async () => {
+    setLoadingCheatSheets(true);
+    try {
+      const res = await cheatSheetService.getCheatSheetsForDocument(documentId);
+      setExistingCheatSheets(res.data || []);
+    } catch {
+      // Silent fail — not critical
+    } finally {
+      setLoadingCheatSheets(false);
+    }
+  };
+
+  useEffect(() => {
+    if (documentId) fetchCheatSheets();
+  }, [documentId]);
 
   const handleGeneralSummary = async () => {
     setLoadingAction("summary");
@@ -74,6 +99,16 @@ const AIActions = () => {
       toast.error("Failed to explain concept");
     } finally {
       setLoadingAction(null);
+    }
+  };
+
+  const handleDeleteCheatSheet = async (id) => {
+    try {
+      await cheatSheetService.deleteCheatSheet(id);
+      setExistingCheatSheets((prev) => prev.filter((cs) => cs._id !== id));
+      toast.success("Cheat sheet deleted");
+    } catch {
+      toast.error("Failed to delete cheat sheet");
     }
   };
 
@@ -142,10 +177,51 @@ const AIActions = () => {
               </button>
             </div>
           </form>
+
+          {/* CHEAT SHEET */}
+          <div className="p-5 border border-neutral-800 rounded-xl hover:bg-neutral-800/50 transition">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <ScrollText className="w-4 h-4 text-purple-500" />
+                  <h4 className="font-semibold text-white">
+                    Generate Cheat Sheet
+                  </h4>
+                </div>
+                <p className="text-sm text-neutral-500">
+                  Create AI-powered revision notes from this document
+                </p>
+              </div>
+
+              <button
+                onClick={() => setIsCheatSheetModalOpen(true)}
+                className="h-10 px-5 text-white rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg shadow-indigo-500/10"
+              >
+                Generate
+              </button>
+            </div>
+
+            {/* Existing cheat sheets */}
+            {existingCheatSheets.length > 0 && (
+              <div className="mt-4 pt-4 border-t border-neutral-800 space-y-2">
+                <p className="text-xs text-neutral-500 font-medium uppercase tracking-wider mb-2">
+                  Previous Cheat Sheets
+                </p>
+                {existingCheatSheets.map((cs) => (
+                  <CheatSheetCard
+                    key={cs._id}
+                    cheatSheet={cs}
+                    compact
+                    onDelete={handleDeleteCheatSheet}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* MODAL */}
+      {/* Summary / Explain Modal */}
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -153,6 +229,14 @@ const AIActions = () => {
       >
         <MarkdownRenderer content={modalContent} />
       </Modal>
+
+      {/* Cheat Sheet Mode Modal */}
+      <CheatSheetModeModal
+        isOpen={isCheatSheetModalOpen}
+        onClose={() => setIsCheatSheetModalOpen(false)}
+        documentId={documentId}
+        onGenerated={fetchCheatSheets}
+      />
     </>
   );
 };
