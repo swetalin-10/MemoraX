@@ -145,6 +145,28 @@ export const getCheatSheetsForDocument = async (req, res, next) => {
   }
 };
 
+// @desc    Get all cheat sheets for the current user
+// @route   GET /api/cheatsheets
+// @access  Private
+export const getAllCheatSheets = async (req, res, next) => {
+  try {
+    const cheatSheets = await CheatSheet.find({
+      user: req.user._id,
+    })
+      .sort({ createdAt: -1 })
+      .populate("document", "title")
+      .select("title mode compressionLevel metadata createdAt document");
+
+    return res.status(200).json({
+      success: true,
+      data: cheatSheets,
+      message: "Cheat sheets retrieved successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // @desc    Get a single cheat sheet by ID
 // @route   GET /api/cheatsheets/:id
 // @access  Private

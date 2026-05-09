@@ -98,7 +98,7 @@ const ActivityChart = ({ data: initialData }) => {
 
       {/* CHART */}
       <div className="w-full min-h-[260px] sm:min-h-[300px] md:min-h-[350px] flex-1 min-w-0 overflow-hidden">
-        <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+        <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
           <LineChart data={chartData} margin={{ top: 8, right: 8, left: -16, bottom: 4 }}>
             <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.colors.grid} />
             <XAxis
