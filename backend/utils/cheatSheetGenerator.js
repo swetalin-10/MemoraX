@@ -1,10 +1,4 @@
-import dotenv from "dotenv";
-import { GoogleGenAI } from "@google/genai";
-
-dotenv.config();
-
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-const MODEL = "gemini-2.5-flash-lite";
+import { generateAIContent, AI_TASK } from "./aiRouter.js";
 
 // ─── Mode-specific prompt instructions ───────────────────────────────────────
 
@@ -99,12 +93,12 @@ Text chunk:
 ${chunkContent}`;
 
   try {
-    const response = await ai.models.generateContent({
-      model: MODEL,
-      contents: prompt,
+    const result = await generateAIContent({
+      taskType: AI_TASK.CHEATSHEET_EXTRACT,
+      prompt,
     });
 
-    const text = response.text.trim();
+    const text = result.text.trim();
     // Strip markdown code fences if present
     const cleaned = text.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
     const parsed = JSON.parse(cleaned);
@@ -195,12 +189,12 @@ Return this exact JSON structure:
 Extracted material:
 ${extractSummary.substring(0, 28000)}`;
 
-  const response = await ai.models.generateContent({
-    model: MODEL,
-    contents: prompt,
+  const result = await generateAIContent({
+    taskType: AI_TASK.CHEATSHEET_MERGE,
+    prompt,
   });
 
-  const text = response.text.trim();
+  const text = result.text.trim();
   const cleaned = text.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
   return JSON.parse(cleaned);
 };
@@ -287,7 +281,6 @@ const calculateMetadata = (content, chunkCount) => {
     wordCount: totalWords,
     readingTimeMinutes: Math.max(1, Math.ceil(totalWords / 200)),
     chunkCount,
-    model: MODEL,
   };
 };
 
@@ -307,16 +300,24 @@ export const generateCheatSheet = async (chunks, mode, compressionLevel, documen
     throw new Error("No content chunks provided for cheat sheet generation");
   }
 
+  // Safely limit chunks to prevent quota exhaustion
+  const MAX_CHUNKS = 3;
+  const processedChunks = chunks.slice(0, MAX_CHUNKS);
+
+  if (chunks.length > MAX_CHUNKS) {
+    console.warn(`[CheatSheet] Truncated document chunks from ${chunks.length} to ${MAX_CHUNKS} for quota safety.`);
+  }
+
   console.log(
-    `[CheatSheet] Generating: mode=${mode}, compression=${compressionLevel}, chunks=${chunks.length}`
+    `[CheatSheet] Generating: mode=${mode}, compression=${compressionLevel}, chunks=${processedChunks.length}`
   );
 
   // Stage 1: Extract from each chunk (batched, 3 at a time)
   const BATCH_SIZE = 3;
   const chunkExtracts = [];
 
-  for (let i = 0; i < chunks.length; i += BATCH_SIZE) {
-    const batch = chunks.slice(i, i + BATCH_SIZE);
+  for (let i = 0; i < processedChunks.length; i += BATCH_SIZE) {
+    const batch = processedChunks.slice(i, i + BATCH_SIZE);
     const results = await Promise.all(
       batch.map((chunk) =>
         extractFromChunk(chunk.content, mode, compressionLevel, chunk.chunkIndex)
@@ -335,11 +336,11 @@ export const generateCheatSheet = async (chunks, mode, compressionLevel, documen
   // Validate and clean
   const generatedContent = validateOutput(rawOutput);
 
-  // Calculate metadata
-  const metadata = calculateMetadata(generatedContent, chunks.length);
+  // Calculate metadata based on processed chunks
+  const metadata = calculateMetadata(generatedContent, processedChunks.length);
 
   // Build source chunk references
-  const sourceChunks = chunks.map((c) => ({
+  const sourceChunks = processedChunks.map((c) => ({
     chunkIndex: c.chunkIndex,
     heading: c.heading || "",
   }));
@@ -379,12 +380,12 @@ IMPORTANT: Return ONLY the JSON, no markdown fences, no explanation.
 Document content:
 ${context}`;
 
-  const response = await ai.models.generateContent({
-    model: MODEL,
-    contents: prompt,
+  const result = await generateAIContent({
+    taskType: AI_TASK.CHEATSHEET_REGEN,
+    prompt,
   });
 
-  const text = response.text.trim();
+  const text = result.text.trim();
   const cleaned = text.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
   const parsed = JSON.parse(cleaned);
 
