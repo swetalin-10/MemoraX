@@ -5,6 +5,7 @@ import {
   getCheatSheetById,
   deleteCheatSheet,
   regenerateSectionHandler,
+  getAllCheatSheets,
 } from "../controllers/cheatSheetController.js";
 import protect from "../middleware/auth.js";
 
@@ -13,6 +14,7 @@ const router = express.Router();
 // All routes are protected
 router.use(protect);
 
+router.get("/", getAllCheatSheets);
 router.post("/generate/:documentId", generateCheatSheetHandler);
 router.get("/document/:documentId", getCheatSheetsForDocument);
 router.get("/:id", getCheatSheetById);

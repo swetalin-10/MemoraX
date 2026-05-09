@@ -77,6 +77,7 @@ export const API_PATHS = {
   },
   CHEAT_SHEETS: {
     GENERATE: (documentId) => `/api/cheatsheets/generate/${documentId}`,
+    GET_ALL: "/api/cheatsheets",
     GET_FOR_DOCUMENT: (documentId) => `/api/cheatsheets/document/${documentId}`,
     GET_BY_ID: (id) => `/api/cheatsheets/${id}`,
     DELETE: (id) => `/api/cheatsheets/${id}`,

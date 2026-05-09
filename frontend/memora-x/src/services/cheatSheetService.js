@@ -26,6 +26,17 @@ const getCheatSheetsForDocument = async (documentId) => {
   }
 };
 
+const getAllCheatSheets = async () => {
+  try {
+    const response = await axiosInstance.get(API_PATHS.CHEAT_SHEETS.GET_ALL);
+    return response.data;
+  } catch (error) {
+    throw (
+      error.response?.data || { message: "Failed to fetch all cheat sheets" }
+    );
+  }
+};
+
 const getCheatSheetById = async (id) => {
   try {
     const response = await axiosInstance.get(
@@ -71,6 +82,7 @@ const regenerateSection = async (id, options = {}) => {
 const cheatSheetService = {
   generateCheatSheet,
   getCheatSheetsForDocument,
+  getAllCheatSheets,
   getCheatSheetById,
   deleteCheatSheet,
   regenerateSection,
