@@ -14,6 +14,7 @@ import cheatSheetService from "../../services/cheatSheetService";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import Button from "../common/Button";
+import BaseModal from "../common/BaseModal";
 
 const MODES = [
   {
@@ -121,16 +122,8 @@ const CheatSheetModeModal = ({ isOpen, onClose, documentId, onGenerated }) => {
   const selectedModeData = MODES.find((m) => m.key === selectedMode);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-      {/* BACKDROP */}
-      <div
-        className="absolute inset-0 bg-black/70 backdrop-blur-sm backdrop-enter"
-        onClick={!loading ? onClose : undefined}
-      />
-
-      {/* MODAL */}
-      <div className="relative w-full max-w-2xl bg-neutral-900 border border-neutral-800 rounded-2xl shadow-2xl z-10 modal-enter overflow-hidden">
-        {/* HEADER */}
+    <BaseModal isOpen={isOpen} onClose={!loading ? onClose : undefined} maxWidth="2xl" className="overflow-hidden">
+      {/* HEADER */}
         <div className="p-6 pb-4 border-b border-neutral-800">
           <div className="flex items-center justify-between">
             <div>
@@ -301,8 +294,7 @@ const CheatSheetModeModal = ({ isOpen, onClose, documentId, onGenerated }) => {
             </Button>
           </div>
         </div>
-      </div>
-    </div>
+    </BaseModal>
   );
 };
 

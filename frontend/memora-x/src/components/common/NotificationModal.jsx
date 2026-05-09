@@ -13,6 +13,7 @@ import {
   Loader2,
 } from "lucide-react";
 import notificationService from "../../services/notificationService";
+import BaseModal from "./BaseModal";
 
 const ICON_MAP = {
   like_post: { icon: Heart, color: "text-red-400", bg: "bg-red-500/10" },
@@ -110,16 +111,8 @@ const NotificationModal = ({ onClose }) => {
   const hasUnread = notifications.some((n) => !n.isRead);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* Overlay */}
-      <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-        onClick={onClose}
-      />
-
-      {/* Modal */}
-      <div className="relative w-full max-w-lg mx-4 max-h-[80vh] bg-neutral-900 border border-neutral-800 rounded-2xl shadow-2xl flex flex-col animate-fadeIn">
-        {/* Header */}
+    <BaseModal isOpen={true} onClose={onClose} maxWidth="lg" className="mx-4 overflow-hidden">
+      {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-neutral-800">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -227,8 +220,7 @@ const NotificationModal = ({ onClose }) => {
             </button>
           </div>
         )}
-      </div>
-    </div>
+    </BaseModal>
   );
 };
 
