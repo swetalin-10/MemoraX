@@ -23,6 +23,8 @@ import SharePostPage from "./pages/Community/SharePostPage";
 import StudyPlannerPage from "./pages/StudyPlanner/StudyPlannerPage";
 import PlannerDetailPage from "./pages/StudyPlanner/PlannerDetailPage";
 import NotFoundPage from "./pages/NotFoundPage";
+import CheatSheetsPage from "./pages/CheatSheets/CheatSheetsPage";
+import CheatSheetDetailPage from "./pages/CheatSheets/CheatSheetDetailPage";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import { useAuth } from "./context/AuthContext";
 
@@ -89,6 +91,8 @@ const App = () => {
           <Route path="/study-planner/:id" element={<PlannerDetailPage />} />
           <Route path="/community" element={<CommunityPage />} />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/cheatsheets" element={<CheatSheetsPage />} />
+          <Route path="/cheatsheets/:id" element={<CheatSheetDetailPage />} />
         </Route>
 
         {/* 404 */}
