@@ -1,11 +1,6 @@
 import StudyPlanner from "../models/studyPlannerModel.js";
 import Document from "../models/documentModel.js";
-import { GoogleGenAI } from "@google/genai";
-import dotenv from "dotenv";
-
-dotenv.config();
-
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+import { generateAIContent, AI_TASK } from "../utils/aiRouter.js";
 
 // ─── Syllabus detection keywords ─────────────────────────────────────────────
 const SYLLABUS_KEYWORDS = [
@@ -84,15 +79,12 @@ RULES:
 - estimatedHours should be realistic (4-12 per week).
 - Vary priorities across weeks.`;
 
-  const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash-lite",
-    contents: prompt,
+  const result = await generateAIContent({
+    taskType: AI_TASK.STUDY_PLANNER,
+    prompt,
   });
 
-  const generatedText =
-    response?.candidates?.[0]?.content?.parts?.[0]?.text ||
-    response?.text ||
-    "";
+  const generatedText = result.text;
 
   // Parse the JSON response — strip markdown fences if Gemini adds them
   const cleaned = generatedText
@@ -151,15 +143,12 @@ RULES:
 - Maintain the same schema as the existing roadmap.
 - Apply the user's requested changes accurately.`;
 
-  const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash-lite",
-    contents: prompt,
+  const result = await generateAIContent({
+    taskType: AI_TASK.PLANNER_EDIT,
+    prompt,
   });
 
-  const generatedText =
-    response?.candidates?.[0]?.content?.parts?.[0]?.text ||
-    response?.text ||
-    "";
+  const generatedText = result.text;
 
   const cleaned = generatedText
     .replace(/```json\s*/gi, "")
