@@ -293,7 +293,7 @@ const CheatSheetModeModal = ({ isOpen, onClose, documentId, onGenerated }) => {
             <button
               onClick={handleGenerate}
               disabled={loading}
-              className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-sm font-semibold rounded-xl transition-all disabled:opacity-50 shadow-lg shadow-indigo-500/20"
+              className="flex items-center justify-center gap-2 px-6 py-2.5 bg-primary hover:bg-primary-dark text-white text-sm font-medium rounded-xl transition-all duration-200 shadow-[0_8px_30px_rgb(61,94,229,0.3)] disabled:opacity-50"
             >
               {loading ? (
                 <>

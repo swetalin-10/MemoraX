@@ -195,7 +195,7 @@ const AIActions = () => {
 
               <button
                 onClick={() => setIsCheatSheetModalOpen(true)}
-                className="h-10 px-5 text-white rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg shadow-indigo-500/10"
+                className="h-10 px-5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
               >
                 Generate
               </button>
