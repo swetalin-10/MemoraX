@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 import documentService from "../../services/documentService";
 import Spinner from "./Spinner";
 import Button from "./Button";
+import BaseModal from "./BaseModal";
 
 const DocumentSelectModal = ({ isOpen, onClose, onProceed, title, documents: initialDocs }) => {
   const [documents, setDocuments] = useState([]);
@@ -47,9 +48,8 @@ const DocumentSelectModal = ({ isOpen, onClose, onProceed, title, documents: ini
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm backdrop-enter px-4">
-      <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 w-full max-w-lg shadow-2xl modal-enter">
-        {/* Header */}
+    <BaseModal isOpen={isOpen} onClose={onClose} maxWidth="lg" className="p-6">
+      {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-white">
             {title || "Select a Document"}
@@ -136,8 +136,7 @@ const DocumentSelectModal = ({ isOpen, onClose, onProceed, title, documents: ini
             Proceed
           </Button>
         </div>
-      </div>
-    </div>
+    </BaseModal>
   );
 };
 

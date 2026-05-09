@@ -8,6 +8,7 @@ import EmptyState from '../../components/common/EmptyState';
 import FlashcardSetCard from "../../components/flashcards/FlashcardSetCard";
 import DocumentSelectModal from "../../components/common/DocumentSelectModal";
 import Button from "../../components/common/Button";
+import BaseModal from "../../components/common/BaseModal";
 import toast from 'react-hot-toast';
 
 const FlashcardsListPage = () => {
@@ -104,10 +105,8 @@ const FlashcardsListPage = () => {
       {renderContent()}
 
       {/* ✅ CUSTOM DELETE MODAL */}
-      {showConfirm && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 px-4">
-          <div className="bg-neutral-900 border border-neutral-800 rounded-2xl shadow-2xl w-full max-w-md p-6 modal-enter">
-            <div className="mb-6">
+      <BaseModal isOpen={showConfirm} onClose={() => setShowConfirm(false)} maxWidth="md" className="p-6">
+        <div className="mb-6">
               <div className="w-12 h-12 rounded-xl bg-red-500/15 flex items-center justify-center mb-4">
                 <Trash2 className="w-6 h-6 text-red-400" strokeWidth={2} />
               </div>
@@ -137,9 +136,7 @@ const FlashcardsListPage = () => {
                 {deleting ? "Deleting..." : "Delete"}
               </Button>
             </div>
-          </div>
-        </div>
-      )}
+      </BaseModal>
 
       {/* Document Selection Modal */}
       <DocumentSelectModal

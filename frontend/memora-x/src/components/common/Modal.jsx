@@ -2,6 +2,7 @@ import React, { useRef } from "react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import { Download, X } from "lucide-react";
+import BaseModal from "./BaseModal";
 
 const Modal = ({ isOpen, onClose, title, children }) => {
   const printAreaRef = useRef(null);
@@ -99,18 +100,8 @@ const Modal = ({ isOpen, onClose, title, children }) => {
   });
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-
-      {/* BACKDROP */}
-      <div
-        className="absolute inset-0 bg-black/70 backdrop-blur-sm backdrop-enter"
-        onClick={onClose}
-      />
-
-      {/* MODAL */}
-      <div className="relative w-full max-w-2xl max-h-[90vh] bg-neutral-900 border border-neutral-800 rounded-2xl shadow-2xl p-6 z-10 modal-enter flex flex-col">
-
-        {/* MODAL UI HEADER — close button lives here, NOT captured in PDF */}
+    <BaseModal isOpen={isOpen} onClose={onClose} maxWidth="2xl" className="p-6">
+      {/* MODAL UI HEADER — close button lives here, NOT captured in PDF */}
         <div className="flex items-center justify-between mb-4 shrink-0">
           <h3 className="text-lg font-semibold text-white">{title}</h3>
           <button
@@ -176,8 +167,7 @@ const Modal = ({ isOpen, onClose, title, children }) => {
           </button>
         </div>
 
-      </div>
-    </div>
+    </BaseModal>
   );
 };
 

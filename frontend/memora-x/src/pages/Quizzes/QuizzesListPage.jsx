@@ -19,6 +19,7 @@ import PageHeader from "../../components/common/PageHeader";
 import Spinner from "../../components/common/Spinner";
 import DocumentSelectModal from "../../components/common/DocumentSelectModal";
 import Button from "../../components/common/Button";
+import BaseModal from "../../components/common/BaseModal";
 
 const QuizzesListPage = () => {
   const [quizzes, setQuizzes] = useState([]);
@@ -276,39 +277,35 @@ const QuizzesListPage = () => {
       </div>
 
       {/* Delete Confirmation Modal */}
-      {showDeleteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/70 backdrop-blur-sm">
-          <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 w-full max-w-md shadow-2xl modal-enter">
-            <div className="mb-6">
-              <div className="w-12 h-12 rounded-xl bg-red-500/15 flex items-center justify-center mb-4">
-                <Trash2 className="w-6 h-6 text-red-400" strokeWidth={2} />
-              </div>
-              <h2 className="text-lg font-semibold text-white mb-2">
-                Delete Quiz
-              </h2>
-              <p className="text-sm text-neutral-400">
-                Are you sure you want to delete this quiz? This action cannot be undone.
-              </p>
-            </div>
-            <div className="flex gap-3">
-              <Button
-                variant="secondary"
-                onClick={cancelDelete}
-                className="flex-1"
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="danger"
-                onClick={confirmDelete}
-                className="flex-1"
-              >
-                Delete
-              </Button>
-            </div>
+      <BaseModal isOpen={showDeleteModal} onClose={cancelDelete} maxWidth="md" className="p-6">
+        <div className="mb-6">
+          <div className="w-12 h-12 rounded-xl bg-red-500/15 flex items-center justify-center mb-4">
+            <Trash2 className="w-6 h-6 text-red-400" strokeWidth={2} />
           </div>
+          <h2 className="text-lg font-semibold text-white mb-2">
+            Delete Quiz
+          </h2>
+          <p className="text-sm text-neutral-400">
+            Are you sure you want to delete this quiz? This action cannot be undone.
+          </p>
         </div>
-      )}
+        <div className="flex gap-3">
+          <Button
+            variant="ghost"
+            onClick={cancelDelete}
+            className="flex-1"
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="danger"
+            onClick={confirmDelete}
+            className="flex-1"
+          >
+            Delete
+          </Button>
+        </div>
+      </BaseModal>
 
       {/* Document Selection Modal */}
       <DocumentSelectModal

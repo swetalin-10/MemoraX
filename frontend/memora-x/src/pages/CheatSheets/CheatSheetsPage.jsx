@@ -8,6 +8,7 @@ import EmptyState from "../../components/common/EmptyState";
 import Button from "../../components/common/Button";
 import DocumentSelectModal from "../../components/common/DocumentSelectModal";
 import CheatSheetModeModal from "../../components/cheatSheets/CheatSheetModeModal";
+import BaseModal from "../../components/common/BaseModal";
 import toast from "react-hot-toast";
 
 const CheatSheetsPage = () => {
@@ -102,10 +103,8 @@ const CheatSheetsPage = () => {
       {renderContent()}
 
       {/* Delete Confirmation Modal */}
-      {showConfirm && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 px-4 backdrop-enter">
-          <div className="bg-neutral-900 border border-neutral-800 rounded-2xl shadow-2xl w-full max-w-md p-6 modal-enter">
-            <div className="mb-6">
+      <BaseModal isOpen={showConfirm} onClose={() => setShowConfirm(false)} maxWidth="md" className="p-6">
+        <div className="mb-6">
               <div className="w-12 h-12 rounded-xl bg-red-500/15 flex items-center justify-center mb-4">
                 <Trash2 className="w-6 h-6 text-red-400" strokeWidth={2} />
               </div>
@@ -135,9 +134,7 @@ const CheatSheetsPage = () => {
                 Delete
               </Button>
             </div>
-          </div>
-        </div>
-      )}
+      </BaseModal>
 
       {/* Modals for Generation Flow */}
       <DocumentSelectModal
