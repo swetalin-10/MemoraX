@@ -110,10 +110,10 @@ const DocumentDetailPage = () => {
   if (!document) return <div className="text-center p-8 text-neutral-400">Not found</div>;
 
   return (
-    <div>
+    <div className="page-enter">
       <Link
         to="/documents"
-        className="inline-flex items-center gap-2 text-sm text-neutral-400 hover:text-white mb-4"
+        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium text-neutral-400 hover:text-white hover:bg-neutral-800 transition-all duration-200 mb-6 -ml-3"
       >
         <ArrowLeft size={16} />
         Back to Documents

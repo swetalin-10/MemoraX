@@ -33,19 +33,19 @@ const DocumentCard = ({ document, onDelete }) => {
 
   return (
     <div
-      className="group relative bg-neutral-900 border border-neutral-800 rounded-2xl p-5 hover:border-neutral-700 transition-all duration-300 flex flex-col justify-between cursor-pointer hover:-translate-y-1"
+      className="group relative bg-neutral-900 border border-neutral-800 rounded-2xl p-5 hover:border-neutral-700 transition-all duration-200 flex flex-col justify-between cursor-pointer hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20"
       onClick={handleNavigate}
     >
       {/* Header Section */}
       <div>
         <div className="flex items-start justify-between gap-3 mb-4">
-          <div className="shrink-0 w-12 h-12 bg-gradient-to-br from-primary to-primary-dark rounded-xl flex items-center justify-center shadow-[0_8px_30px_rgb(0,0,0,0.12)] group-hover:scale-110 transition-transform duration-300">
-            <FileText className="w-6 h-6 text-white" strokeWidth={2} />
+          <div className="shrink-0 w-11 h-11 bg-primary/10 rounded-xl flex items-center justify-center group-hover:bg-primary/15 transition-colors duration-200">
+            <FileText className="w-5 h-5 text-primary" strokeWidth={2} />
           </div>
 
           <button
             onClick={handleDelete}
-            className="opacity-0 group-hover:opacity-100 w-8 h-8 flex items-center justify-center text-neutral-500 hover:text-red-400 hover:bg-neutral-800 rounded-lg transition-all duration-200"
+            className="opacity-0 group-hover:opacity-100 w-8 h-8 flex items-center justify-center text-neutral-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all duration-200"
           >
             <Trash2 className="w-4 h-4" strokeWidth={2} />
           </button>
@@ -71,23 +71,23 @@ const DocumentCard = ({ document, onDelete }) => {
         </div>
 
         {/* Stats Section */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 flex-wrap">
           {document.flashcardsCount !== undefined && (
-            <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-primary/10 rounded-lg">
-              <BookOpen className="w-3.5 h-3.5 text-primary" strokeWidth={2} />
-              <span className="text-xs font-semibold text-primary">
+            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-primary/8 rounded-lg">
+              <BookOpen className="w-3.5 h-3.5 text-primary/80" strokeWidth={2} />
+              <span className="text-xs font-medium text-primary/80">
                 {document.flashcardsCount} Flashcards
               </span>
             </div>
           )}
 
           {document.quizCount !== undefined && (
-            <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-primary/10 rounded-lg">
+            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-primary/8 rounded-lg">
               <BrainCircuit
-                className="w-3.5 h-3.5 text-primary"
+                className="w-3.5 h-3.5 text-primary/80"
                 strokeWidth={2}
               />
-              <span className="text-xs font-semibold text-primary">
+              <span className="text-xs font-medium text-primary/80">
                 {document.quizCount} Quizzes
               </span>
             </div>
@@ -102,9 +102,6 @@ const DocumentCard = ({ document, onDelete }) => {
           <span>Uploaded {moment(document.createdAt).fromNow()}</span>
         </div>
       </div>
-
-      {/* Hover Indicator */}
-      <div className="absolute inset-0 rounded-2xl bg-linear-to-br from-primary/20 to-teal-500/0 group-hover:from-emerald-500/10 transition-all duration-300 pointer-events-none"></div>
     </div>
   );
 };

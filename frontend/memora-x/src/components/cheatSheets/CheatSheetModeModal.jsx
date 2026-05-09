@@ -13,6 +13,7 @@ import {
 import cheatSheetService from "../../services/cheatSheetService";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import Button from "../common/Button";
 
 const MODES = [
   {
@@ -123,18 +124,18 @@ const CheatSheetModeModal = ({ isOpen, onClose, documentId, onGenerated }) => {
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
       {/* BACKDROP */}
       <div
-        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/70 backdrop-blur-sm backdrop-enter"
         onClick={!loading ? onClose : undefined}
       />
 
       {/* MODAL */}
-      <div className="relative w-full max-w-2xl bg-neutral-900 border border-neutral-800 rounded-2xl shadow-2xl z-10 animate-in fade-in zoom-in-95 duration-200 overflow-hidden">
+      <div className="relative w-full max-w-2xl bg-neutral-900 border border-neutral-800 rounded-2xl shadow-2xl z-10 modal-enter overflow-hidden">
         {/* HEADER */}
         <div className="p-6 pb-4 border-b border-neutral-800">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
+                <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary-dark rounded-lg flex items-center justify-center">
                   <FileText className="w-4 h-4 text-white" />
                 </div>
                 Generate Cheat Sheet
@@ -283,30 +284,21 @@ const CheatSheetModeModal = ({ isOpen, onClose, documentId, onGenerated }) => {
             )}
           </div>
           <div className="flex items-center gap-3">
-            <button
+            <Button
               onClick={onClose}
               disabled={loading}
-              className="px-4 py-2.5 text-sm text-neutral-400 hover:text-white transition-colors disabled:opacity-50"
+              variant="ghost"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={handleGenerate}
-              disabled={loading}
-              className="flex items-center justify-center gap-2 px-6 py-2.5 bg-primary hover:bg-primary-dark text-white text-sm font-medium rounded-xl transition-all duration-200 shadow-[0_8px_30px_rgb(61,94,229,0.3)] disabled:opacity-50"
+              loading={loading}
+              variant="primary"
+              icon={!loading && <Zap className="w-4 h-4" />}
             >
-              {loading ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Generating...
-                </>
-              ) : (
-                <>
-                  <Zap className="w-4 h-4" />
-                  Generate
-                </>
-              )}
-            </button>
+              Generate
+            </Button>
           </div>
         </div>
       </div>

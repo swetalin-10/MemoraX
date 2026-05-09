@@ -8,8 +8,8 @@ const Header = ({ toggleSidebar }) => {
   const { user, logout } = useAuth();
 
   return (
-    <header className="sticky top-0 z-40 w-full h-16 bg-neutral-950/80 backdrop-blur-md border-b border-neutral-800">
-      <div className="flex items-center justify-between h-full px-6">
+    <header className="sticky top-0 z-40 w-full h-16 bg-neutral-950/90 backdrop-blur-xl border-b border-neutral-800/80">
+      <div className="flex items-center justify-between h-full px-4 md:px-6">
         {/* Mobile Menu Button */}
         <button
           onClick={toggleSidebar}

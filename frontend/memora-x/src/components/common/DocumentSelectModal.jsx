@@ -4,6 +4,7 @@ import toast from "react-hot-toast";
 
 import documentService from "../../services/documentService";
 import Spinner from "./Spinner";
+import Button from "./Button";
 
 const DocumentSelectModal = ({ isOpen, onClose, onProceed, title, documents: initialDocs }) => {
   const [documents, setDocuments] = useState([]);
@@ -46,8 +47,8 @@ const DocumentSelectModal = ({ isOpen, onClose, onProceed, title, documents: ini
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-      <div className="bg-neutral-900 border border-white/10 rounded-xl p-6 w-full max-w-lg shadow-xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm backdrop-enter px-4">
+      <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 w-full max-w-lg shadow-2xl modal-enter">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-white">
@@ -82,10 +83,10 @@ const DocumentSelectModal = ({ isOpen, onClose, onProceed, title, documents: ini
               <div
                 key={doc._id}
                 onClick={() => setSelectedDoc(doc)}
-                className={`p-3 rounded-lg border cursor-pointer transition-all duration-200 ${
+                className={`p-3 rounded-xl border cursor-pointer transition-all duration-200 ${
                   selectedDoc?._id === doc._id
                     ? "border-primary bg-primary/10"
-                    : "border-white/10 hover:border-primary/40 hover:bg-white/5"
+                    : "border-neutral-800 hover:border-neutral-700 hover:bg-neutral-800/50"
                 }`}
               >
                 <div className="flex items-center gap-3">
@@ -120,20 +121,20 @@ const DocumentSelectModal = ({ isOpen, onClose, onProceed, title, documents: ini
         )}
 
         {/* Actions */}
-        <div className="flex justify-end gap-3 mt-6">
-          <button
+        <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-neutral-800">
+          <Button
             onClick={onClose}
-            className="px-4 py-2 rounded-lg text-sm font-medium text-neutral-400 hover:text-white hover:bg-neutral-800 transition-all duration-200"
+            variant="ghost"
           >
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
             disabled={!selectedDoc}
             onClick={handleProceed}
-            className="px-4 py-2 rounded-lg text-sm font-semibold bg-gradient-to-r from-primary to-primary-dark hover:from-primary-dark hover:to-primary text-white shadow-md hover:shadow-primary/20 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            variant="primary"
           >
             Proceed
-          </button>
+          </Button>
         </div>
       </div>
     </div>

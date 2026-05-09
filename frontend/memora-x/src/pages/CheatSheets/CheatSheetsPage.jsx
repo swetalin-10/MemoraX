@@ -4,11 +4,15 @@ import cheatSheetService from "../../services/cheatSheetService";
 import CheatSheetCard from "../../components/cheatSheets/CheatSheetCard";
 import PageHeader from "../../components/common/PageHeader";
 import Spinner from "../../components/common/Spinner";
+import EmptyState from "../../components/common/EmptyState";
 import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 const CheatSheetsPage = () => {
   const [cheatSheets, setCheatSheets] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const navigate = useNavigate();
 
   // This page doesn't have a single documentId — we'd need a
   // backend endpoint for "all user cheat sheets". For now, show
@@ -30,24 +34,25 @@ const CheatSheetsPage = () => {
     }
   };
 
-  if (loading) return <div className="flex justify-center py-20"><Spinner /></div>;
+  if (loading) return <Spinner label="Loading cheat sheets..." />;
 
   return (
-    <div>
-      <PageHeader title="Cheat Sheets" />
+    <div className="page-enter">
+      <PageHeader 
+        title="Cheat Sheets" 
+        subtitle="Ultra-compressed, AI-powered revision notes"
+      />
 
       {cheatSheets.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="w-16 h-16 bg-neutral-900 border border-neutral-800 rounded-2xl flex items-center justify-center mb-4">
-            <ScrollText className="w-7 h-7 text-neutral-600" />
-          </div>
-          <h3 className="text-lg font-semibold text-white mb-2">No cheat sheets yet</h3>
-          <p className="text-sm text-neutral-500 max-w-sm">
-            Open any document and use the AI Actions tab to generate your first cheat sheet.
-          </p>
-        </div>
+        <EmptyState
+          icon={ScrollText}
+          title="No cheat sheets yet"
+          description="Open any document and use the AI Actions tab to generate your first cheat sheet."
+          buttonText="Go to Documents"
+          onActionClick={() => navigate("/documents")}
+        />
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mt-6">
           {cheatSheets.map((cs) => (
             <CheatSheetCard key={cs._id} cheatSheet={cs} onDelete={handleDelete} />
           ))}

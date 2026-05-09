@@ -1,17 +1,31 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Play, BarChart2, Trash2, Award } from "lucide-react";
 import moment from "moment";
+import Button from "../common/Button";
 
 const QuizCard = ({ quiz, onDelete }) => {
+  const navigate = useNavigate();
+
+  const handleCardClick = () => {
+    if (quiz?.userAnswers?.length > 0) {
+      navigate(`/quizzes/${quiz._id}/results`);
+    } else {
+      navigate(`/quizzes/${quiz._id}`);
+    }
+  };
+
   return (
-    <div className="group relative bg-neutral-900 border border-neutral-800 hover:border-primary/40 rounded-2xl p-4 transition-all duration-200 flex flex-col justify-between">
+    <div 
+      className="group relative bg-neutral-900 border border-neutral-800 hover:border-primary/40 rounded-2xl p-5 transition-all duration-200 flex flex-col justify-between cursor-pointer hover:shadow-lg hover:shadow-black/20 hover:-translate-y-0.5"
+      onClick={handleCardClick}
+    >
       <button
         onClick={(e) => {
           e.stopPropagation();
           onDelete(quiz);
         }}
-        className="absolute top-4 right-4 p-2 text-neutral-500 hover:text-rose-400 hover:bg-neutral-800 rounded-lg transition-all duration-200 opacity-100"
+        className="absolute top-4 right-4 p-2 text-neutral-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all duration-200 opacity-0 group-hover:opacity-100"
       >
         <Trash2 className="w-4 h-4" strokeWidth={2} />
       </button>
@@ -50,35 +64,31 @@ const QuizCard = ({ quiz, onDelete }) => {
       </div>
 
       {/* Actions Button */}
-      <div className="mt-2 pt-4 border-t border-neutral-800">
+      <div className="mt-5 pt-4 border-t border-neutral-800">
         {quiz?.userAnswers?.length > 0 ? (
-          <Link to={`/quizzes/${quiz._id}/results`}>
-            {/* <button className="group/btn w-full inline-flex items-center justify-center gap-2 h-11 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-sm rounded-xl transition-all duration-200 active:scale-95 cursor-pointer">
-              <BarChart2 className="w-4 h-4" strokeWidth={2.5} />
-              View Results
-            </button> */}
-            <button className="group w-full relative inline-flex items-center justify-center gap-2 h-11 rounded-xl font-semibold text-sm text-neutral-300 bg-neutral-800 hover:bg-neutral-700 hover:text-white border border-neutral-700 transition-all duration-300 ease-out active:scale-90 overflow-hidden">
-              {/* Glow effect */}
-              <span className="absolute inset-0 bg-white/0 group-hover:bg-white/10 transition duration-300" />
-
-              <BarChart2
-                className="w-4 h-4 transition-transform duration-300 group-hover:scale-110"
-                strokeWidth={2.5}
-              />
-
-              <span className="relative">View Results</span>
-            </button>
-          </Link>
+          <Button 
+            variant="secondary" 
+            className="w-full"
+            icon={<BarChart2 className="w-4 h-4" strokeWidth={2.5} />}
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/quizzes/${quiz._id}/results`);
+            }}
+          >
+            View Results
+          </Button>
         ) : (
-          <Link to={`/quizzes/${quiz._id}`}>
-            <button className="group/btn relative w-full h-11 bg-gradient-to-r from-primary to-primary-dark hover:from-primary-dark hover:to-primary text-white font-semibold text-sm rounded-xl transition-all duration-200 shadow-[0_8px_30px_rgb(0,0,0,0.12)] active:scale-95 overflow-hidden">
-              <span className="relative z-10 flex items-center justify-center gap-2">
-                <Play className="w-4 h-4" strokeWidth={2.5} />
-                Start Quiz
-              </span>
-              <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-full group-hover/btn:translate-x-full transition-transform duration-700" />
-            </button>
-          </Link>
+          <Button 
+            variant="primary" 
+            className="w-full"
+            icon={<Play className="w-4 h-4" strokeWidth={2.5} />}
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/quizzes/${quiz._id}`);
+            }}
+          >
+            Start Quiz
+          </Button>
         )}
       </div>
     </div>

@@ -1,23 +1,25 @@
 import React from 'react'
 
-const PageHeader = ({title, subtitle, children}) => {
+const PageHeader = ({ title, subtitle, description, children }) => {
+  const sub = subtitle || description;
+
   return (
-    <div className="flex items-center justify-between mb-6">
-        <div>
-            <h1 className="text-2xl font-medium text-white tracking-tight mb-2">
-                {title}
-            </h1>
-            {subtitle && (
-                <p className="text-neutral-400 text-sm">
-                    {subtitle}
-                </p>
-            )}
-        </div>
-        {children && (
-            <div>
-                {children}
-            </div>
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+      <div className="min-w-0">
+        <h1 className="text-2xl md:text-3xl font-semibold text-white tracking-tight">
+          {title}
+        </h1>
+        {sub && (
+          <p className="text-neutral-400 text-sm mt-1.5 leading-relaxed">
+            {sub}
+          </p>
         )}
+      </div>
+      {children && (
+        <div className="flex items-center gap-3 shrink-0">
+          {children}
+        </div>
+      )}
     </div>
   )
 }

@@ -25,13 +25,13 @@ const FlashcardSetCard = ({ flashcardSet, onDelete }) => {
 
   return (
     <div
-      className="group relative bg-neutral-900 border border-neutral-800 hover:border-primary/40 rounded-2xl p-6 cursor-pointer transition-all duration-200 flex flex-col justify-between"
+      className="group relative bg-neutral-900 border border-neutral-800 hover:border-primary/40 rounded-2xl p-6 cursor-pointer transition-all duration-200 flex flex-col justify-between hover:shadow-lg hover:shadow-black/20 hover:-translate-y-0.5"
       onClick={handleStudyNow}
     >
       {/* 🗑 DELETE BUTTON */}
       <button
         onClick={handleDeleteClick}
-        className="absolute top-4 right-4 p-2.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 transition-all"
+        className="absolute top-4 right-4 p-2.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 transition-all opacity-0 group-hover:opacity-100"
       >
         <Trash2 size={16} />
       </button>

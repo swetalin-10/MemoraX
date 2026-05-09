@@ -6,6 +6,7 @@ import cheatSheetService from "../../services/cheatSheetService";
 import toast from "react-hot-toast";
 import MarkdownRenderer from "../common/MarkdownRenderer";
 import Modal from "../common/Modal";
+import Button from "../common/Button";
 import CheatSheetModeModal from "../cheatSheets/CheatSheetModeModal";
 import CheatSheetCard from "../cheatSheets/CheatSheetCard";
 
@@ -140,13 +141,13 @@ const AIActions = () => {
               </p>
             </div>
 
-            <button
+            <Button
               onClick={handleGeneralSummary}
-              disabled={loadingAction === "summary"}
-              className="h-10 px-5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+              loading={loadingAction === "summary"}
+              variant="primary"
             >
-              {loadingAction === "summary" ? "Loading..." : "Summarize"}
-            </button>
+              Summarize
+            </Button>
           </div>
 
           {/* EXPLAIN */}
@@ -165,16 +166,17 @@ const AIActions = () => {
                 value={concept}
                 onChange={(e) => setConcept(e.target.value)}
                 placeholder="e.g. React Hooks"
-                className="flex-1 h-11 px-4 border border-neutral-800 bg-neutral-950 text-white placeholder-neutral-600 rounded-lg focus:outline-none focus:border-neutral-600"
+                className="flex-1 h-11 px-4 border border-neutral-800 bg-neutral-950 text-white placeholder-neutral-600 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200"
               />
 
-              <button
+              <Button
                 type="submit"
-                disabled={loadingAction === "explain" || !concept.trim()}
-                className="h-11 px-5 text-white rounded-lg bg-gradient-to-r from-primary to-primary-dark hover:from-primary-dark hover:to-primary disabled:opacity-50 whitespace-nowrap"
+                loading={loadingAction === "explain"}
+                disabled={!concept.trim()}
+                variant="primary"
               >
-                {loadingAction === "explain" ? "Loading..." : "Explain"}
-              </button>
+                Explain
+              </Button>
             </div>
           </form>
 
@@ -193,12 +195,12 @@ const AIActions = () => {
                 </p>
               </div>
 
-              <button
+              <Button
                 onClick={() => setIsCheatSheetModalOpen(true)}
-                className="h-10 px-5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                variant="primary"
               >
                 Generate
-              </button>
+              </Button>
             </div>
 
             {/* Existing cheat sheets */}

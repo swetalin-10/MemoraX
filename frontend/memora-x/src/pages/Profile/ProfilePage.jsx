@@ -282,7 +282,7 @@ const ProfilePage = () => {
   }
 
   return (
-    <div className="space-y-6 animate-fadeIn">
+    <div className="space-y-6 page-enter max-w-4xl mx-auto">
       <PageHeader title="Profile Settings" />
 
       {/* ════════════════════ PROFILE HEADER ════════════════════ */}

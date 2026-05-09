@@ -1,7 +1,7 @@
 import React, { useRef } from "react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
-import { Download } from "lucide-react";
+import { Download, X } from "lucide-react";
 
 const Modal = ({ isOpen, onClose, title, children }) => {
   const printAreaRef = useRef(null);
@@ -103,26 +103,26 @@ const Modal = ({ isOpen, onClose, title, children }) => {
 
       {/* BACKDROP */}
       <div
-        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/70 backdrop-blur-sm backdrop-enter"
         onClick={onClose}
       />
 
       {/* MODAL */}
-      <div className="relative w-full max-w-2xl bg-neutral-900 border border-neutral-800 rounded-2xl shadow-2xl p-6 z-10 animate-in fade-in zoom-in-95 duration-200">
+      <div className="relative w-full max-w-2xl max-h-[90vh] bg-neutral-900 border border-neutral-800 rounded-2xl shadow-2xl p-6 z-10 modal-enter flex flex-col">
 
         {/* MODAL UI HEADER — close button lives here, NOT captured in PDF */}
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-4 shrink-0">
           <h3 className="text-lg font-semibold text-white">{title}</h3>
           <button
             onClick={onClose}
-            className="text-neutral-400 hover:text-white"
+            className="w-8 h-8 flex items-center justify-center rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-800 transition-all duration-200"
           >
-            ✕
+            <X size={18} strokeWidth={2} />
           </button>
         </div>
 
         {/* SCROLL WRAPPER */}
-        <div ref={scrollRef} className="max-h-[60vh] overflow-y-auto pr-2">
+        <div ref={scrollRef} className="flex-1 min-h-0 overflow-y-auto pr-2">
 
           {/* PRINT AREA — clean document layout, captured for PDF */}
           <div ref={printAreaRef} className="bg-neutral-950 px-8 py-5 rounded-xl border border-neutral-800">
@@ -160,16 +160,16 @@ const Modal = ({ isOpen, onClose, title, children }) => {
         </div>
 
         {/* FOOTER */}
-        <div className="flex items-center justify-end gap-3 mt-5 pt-4 border-t border-neutral-800">
+        <div className="flex items-center justify-end gap-3 mt-5 pt-4 border-t border-neutral-800 shrink-0">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm text-neutral-400 hover:text-white transition-colors"
+            className="px-4 py-2.5 text-sm text-neutral-400 hover:text-white rounded-xl hover:bg-neutral-800 transition-all duration-200"
           >
             Close
           </button>
           <button
             onClick={handleExtractPDF}
-            className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-xl transition-colors"
+            className="flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary-dark text-white text-sm font-medium rounded-xl transition-all duration-200 shadow-[0_2px_12px_rgba(61,94,229,0.25)]"
           >
             <Download className="w-4 h-4" />
             Extract as PDF
