@@ -56,28 +56,9 @@ const StudyPlannerPage = () => {
     }
   };
 
-  const handleUploadAndGenerate = async (file, title, setModalLoading) => {
-    try {
-      setModalLoading(true);
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("title", title);
-
-      // 1. Upload via existing document service
-      const uploadRes = await documentService.uploadDocument(formData);
-      
-      // 2. Start generation process
-      if (uploadRes.success && uploadRes.data?._id) {
-        await studyPlannerService.generatePlanner(uploadRes.data._id);
-        toast.success("Syllabus uploaded and generation started!");
-        setIsUploadModalOpen(false);
-        fetchData();
-      }
-    } catch (error) {
-      toast.error(error.message || "Failed to process upload");
-    } finally {
-      setModalLoading(false);
-    }
+  // Modal upload handles everything internally now.
+  const handleGenerated = () => {
+    fetchData();
   };
 
   if (loading && planners.length === 0) return <Spinner />;
@@ -142,7 +123,7 @@ const StudyPlannerPage = () => {
       <UploadSyllabusModal 
         isOpen={isUploadModalOpen} 
         onClose={() => setIsUploadModalOpen(false)}
-        onUpload={handleUploadAndGenerate}
+        onGenerated={handleGenerated}
       />
     </div>
   );

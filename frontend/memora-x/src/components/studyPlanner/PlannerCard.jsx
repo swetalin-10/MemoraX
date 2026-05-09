@@ -9,8 +9,8 @@ const PlannerCard = ({ item, onGenerate }) => {
   const planner = isDocument ? null : item;
   
   const isGenerating = planner?.status === "generating";
-  const isFailed = planner?.status === "failed";
-  const isReady = planner?.status === "ready";
+  const isFailed = planner?.status === "failed" || planner?.status === "error";
+  const isReady = planner?.status === "ready" || planner?.status === "completed" || planner?.status === "success";
 
   const getDifficultyColor = (difficulty) => {
     switch (difficulty) {

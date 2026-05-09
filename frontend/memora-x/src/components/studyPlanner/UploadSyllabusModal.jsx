@@ -3,6 +3,7 @@ import { UploadCloud, X, File, Sparkles, BookOpen } from "lucide-react";
 import studyPlannerService from "../../services/studyPlannerService";
 import Button from "../common/Button";
 import BaseModal from "../common/BaseModal";
+import toast from "react-hot-toast";
 
 const UploadSyllabusModal = ({ isOpen, onClose, onGenerated }) => {
   const [file, setFile] = useState(null);
@@ -51,10 +52,14 @@ const UploadSyllabusModal = ({ isOpen, onClose, onGenerated }) => {
       setIsLoading(true);
       try {
         const roadmap = await studyPlannerService.uploadSyllabus(file, title.trim());
-        onGenerated(roadmap);
+        toast.success("Study roadmap generated successfully!");
+        if (typeof onGenerated === "function") {
+          onGenerated(roadmap);
+        }
         handleClose();
       } catch (error) {
         console.error("Upload failed", error);
+        toast.error(error.message || "Failed to upload syllabus. Please try again.");
       } finally {
         setIsLoading(false);
       }
