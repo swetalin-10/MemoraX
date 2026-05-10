@@ -78,15 +78,15 @@ const PlannerChat = ({ planner, onUpdate, isOpen, onClose }) => {
 
   return (
     <>
-      {/* Backdrop (visible only on mobile if needed, but we'll use it to close on click outside) */}
+      {/* Backdrop overlay — click to close */}
       {isOpen && (
         <div 
-          className="fixed inset-0 z-[60] bg-black/20 backdrop-blur-[2px] transition-opacity"
+          className="fixed inset-0 z-[60] bg-black/30 backdrop-blur-[2px] transition-opacity"
           onClick={onClose}
         />
       )}
 
-      {/* Slide-out Sidebar */}
+      {/* Slide-out Sidebar — fully fixed, never in document flow */}
       <div 
         className={`fixed top-0 right-0 h-full w-full sm:w-[400px] bg-[#111113] border-l border-neutral-800 shadow-2xl z-[70] transform transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] flex flex-col ${
           isOpen ? "translate-x-0" : "translate-x-full"
