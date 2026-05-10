@@ -1,4 +1,7 @@
-import { generateAIContent, AI_TASK } from "./aiRouter.js";
+import { generateAIResponse } from "./ai/aiRouter.js";
+import { AI_TASK } from "./ai/aiModels.js";
+import { optimizeTextTokens } from "./ai/aiLimiter.js";
+import { parseAIJSON } from "./ai/aiResponseFormatter.js";
 
 // ─── Mode-specific prompt instructions ───────────────────────────────────────
 
@@ -90,18 +93,16 @@ IMPORTANT:
 - Be precise and factual — do NOT hallucinate information not in the text.
 
 Text chunk:
-${chunkContent}`;
+${optimizeTextTokens(chunkContent)}`;
 
   try {
-    const result = await generateAIContent({
+    const result = await generateAIResponse({
       taskType: AI_TASK.CHEATSHEET_EXTRACT,
       prompt,
     });
 
-    const text = result.text.trim();
-    // Strip markdown code fences if present
-    const cleaned = text.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
-    const parsed = JSON.parse(cleaned);
+    const parsed = parseAIJSON(result.text);
+    if (!parsed) throw new Error("Failed to parse extracted JSON");
 
     return {
       ...parsed,
@@ -187,16 +188,16 @@ Return this exact JSON structure:
 }
 
 Extracted material:
-${extractSummary.substring(0, 28000)}`;
+${optimizeTextTokens(extractSummary).substring(0, 28000)}`;
 
-  const result = await generateAIContent({
+  const result = await generateAIResponse({
     taskType: AI_TASK.CHEATSHEET_MERGE,
     prompt,
   });
 
-  const text = result.text.trim();
-  const cleaned = text.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
-  return JSON.parse(cleaned);
+  const parsed = parseAIJSON(result.text);
+  if (!parsed) throw new Error("Failed to parse merged JSON");
+  return parsed;
 };
 
 // ─── Validate output structure ───────────────────────────────────────────────
@@ -378,16 +379,14 @@ Return ONLY valid JSON with this structure:
 IMPORTANT: Return ONLY the JSON, no markdown fences, no explanation.
 
 Document content:
-${context}`;
+${optimizeTextTokens(context)}`;
 
-  const result = await generateAIContent({
+  const result = await generateAIResponse({
     taskType: AI_TASK.CHEATSHEET_REGEN,
     prompt,
   });
 
-  const text = result.text.trim();
-  const cleaned = text.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
-  const parsed = JSON.parse(cleaned);
+  const parsed = parseAIJSON(result.text) || {};
 
   return {
     heading: parsed.heading || sectionHeading,
