@@ -1,6 +1,10 @@
 import StudyPlanner from "../models/studyPlannerModel.js";
 import Document from "../models/documentModel.js";
-import { generateAIContent, AI_TASK } from "../utils/aiRouter.js";
+import { generateAIResponse } from "../utils/ai/aiRouter.js";
+import { AI_TASK } from "../utils/ai/aiModels.js";
+import { PROMPTS } from "../utils/ai/aiPrompts.js";
+import { optimizeTextTokens } from "../utils/ai/aiLimiter.js";
+import { parseAIJSON } from "../utils/ai/aiResponseFormatter.js";
 
 // ─── Syllabus detection keywords ─────────────────────────────────────────────
 const SYLLABUS_KEYWORDS = [
@@ -35,70 +39,19 @@ const isSyllabusLike = (title) => {
  * @returns {Promise<Object>} Parsed roadmap object
  */
 const generateRoadmapFromText = async (text, docTitle) => {
-  const prompt = `You are an expert academic study planner. Analyze the following syllabus/document content and generate a comprehensive, structured study roadmap.
+  const optimizedText = optimizeTextTokens(text).substring(0, 20000);
+  const prompt = PROMPTS.STUDY_PLANNER(docTitle) + optimizedText + PROMPTS.STUDY_PLANNER_INSTRUCTIONS;
 
-DOCUMENT TITLE: "${docTitle}"
-
-DOCUMENT CONTENT:
-${text.substring(0, 20000)}
-
-INSTRUCTIONS:
-- Create a realistic weekly study plan covering all topics in the document.
-- Order topics from foundational/beginner to advanced.
-- Estimate realistic study hours per week.
-- Include revision sessions.
-- Prioritize topics by importance (high/medium/low).
-- Provide actionable study tips.
-- If the content is a syllabus, follow its structure. If it's general content, organize it logically.
-
-RESPOND WITH ONLY VALID JSON (no markdown fences, no extra text). Use this exact structure:
-
-{
-  "title": "Study Roadmap: [Subject/Topic Name]",
-  "overview": "[2-3 sentence overview of what this study plan covers]",
-  "estimatedDuration": "[e.g. 4 weeks, 30 days]",
-  "difficulty": "[beginner/intermediate/advanced/mixed]",
-  "studyPlan": [
-    {
-      "week": "Week 1: [Theme]",
-      "topics": ["Topic 1", "Topic 2"],
-      "goals": ["Goal 1", "Goal 2"],
-      "revision": "Revise [specific topics]",
-      "estimatedHours": 8,
-      "priority": "high"
-    }
-  ],
-  "tips": ["Tip 1", "Tip 2", "Tip 3"]
-}
-
-RULES:
-- Return ONLY valid JSON. No markdown, no code fences, no explanation text.
-- Create at least 3 weeks and at most 12 weeks.
-- Each week must have at least 2 topics and 2 goals.
-- Include at least 4 practical tips.
-- estimatedHours should be realistic (4-12 per week).
-- Vary priorities across weeks.`;
-
-  const result = await generateAIContent({
+  const result = await generateAIResponse({
     taskType: AI_TASK.STUDY_PLANNER,
     prompt,
   });
 
-  const generatedText = result.text;
-
-  // Parse the JSON response — strip markdown fences if Gemini adds them
-  const cleaned = generatedText
-    .replace(/```json\s*/gi, "")
-    .replace(/```\s*/g, "")
-    .trim();
-
-  try {
-    return JSON.parse(cleaned);
-  } catch (parseError) {
-    console.error("Failed to parse Gemini roadmap JSON:", parseError.message);
-    console.error("Raw response:", cleaned.substring(0, 500));
+  const parsed = parseAIJSON(result.text);
+  if (!parsed) {
     throw new Error("AI generated an invalid response. Please try again.");
   }
+  return parsed;
 };
 
 // ─── Gemini: Modify Existing Roadmap ─────────────────────────────────────────
@@ -143,24 +96,16 @@ RULES:
 - Maintain the same schema as the existing roadmap.
 - Apply the user's requested changes accurately.`;
 
-  const result = await generateAIContent({
+  const result = await generateAIResponse({
     taskType: AI_TASK.PLANNER_EDIT,
     prompt,
   });
 
-  const generatedText = result.text;
-
-  const cleaned = generatedText
-    .replace(/```json\s*/gi, "")
-    .replace(/```\s*/g, "")
-    .trim();
-
-  try {
-    return JSON.parse(cleaned);
-  } catch (parseError) {
-    console.error("Failed to parse Gemini modification JSON:", parseError.message);
+  const parsed = parseAIJSON(result.text);
+  if (!parsed) {
     throw new Error("AI generated an invalid response. Please try again.");
   }
+  return parsed;
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
