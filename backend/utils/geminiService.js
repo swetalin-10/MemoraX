@@ -1,4 +1,8 @@
-import { generateAIContent, AI_TASK } from "./aiRouter.js";
+import { generateAIResponse } from "./ai/aiRouter.js";
+import { AI_TASK } from "./ai/aiModels.js";
+import { PROMPTS } from "./ai/aiPrompts.js";
+import { optimizeTextTokens } from "./ai/aiLimiter.js";
+import { chunkText } from "./ai/aiChunker.js";
 
 /**
  * Generate flashcards from text
@@ -8,20 +12,15 @@ import { generateAIContent, AI_TASK } from "./aiRouter.js";
  */
 
 export const generateFlashcards = async (text, count = 10) => {
-  const prompt = `Generate exactly ${count} educational flashcards from the following text.
-Format each flashcard as:
-Q: [Clear, specific question]
-A: [Concise, accurate answer]
-D: [Difficulty level: easy, medium or hard]
+  const optimizedText = optimizeTextTokens(text);
+  // Take the first chunk if text is too large
+  const chunks = chunkText(optimizedText, { maxTokens: 4000 });
+  const sourceText = chunks[0].content;
 
-Separate each flashcard with "---"
-
-Text:
-${text.substring(0, 15000)}
-`;
+  const prompt = PROMPTS.FLASHCARDS(count) + sourceText;
 
   try {
-    const result = await generateAIContent({
+    const result = await generateAIResponse({
       taskType: AI_TASK.FLASHCARDS,
       prompt,
     });
@@ -73,25 +72,14 @@ ${text.substring(0, 15000)}
  */
 
 export const generateQuiz = async (text, numQuestions = 5) => {
-  const prompt = `Generate exactly ${numQuestions} multiple choice questions from the following text.
-    Format each question as:
-    Q: [Question]
-    Q1: [Option 1]
-    Q2: [Option 2]
-    Q3: [Option 3]
-    Q4: [Option 4]
-    C: [Correct option - exactly as written above]
-    E: [Brief explanation]
-    D: [Difficulty: easy, medium or hard]
-    
-    Separate each question with "---"
+  const optimizedText = optimizeTextTokens(text);
+  const chunks = chunkText(optimizedText, { maxTokens: 4000 });
+  const sourceText = chunks[0].content;
 
-    Text:
-    ${text.substring(0, 15000)}
-    `;
+  const prompt = PROMPTS.QUIZZES(numQuestions) + sourceText;
 
   try {
-    const result = await generateAIContent({
+    const result = await generateAIResponse({
       taskType: AI_TASK.QUIZZES,
       prompt,
     });
@@ -152,15 +140,15 @@ export const generateQuiz = async (text, numQuestions = 5) => {
  */
 
 export const generateSummary = async (text) => {
-  const prompt = `Provide a consise summary of the following text, highlighting key concepts, main ideas and important points.
-    Keep the summary clear and structured.
+  const optimizedText = optimizeTextTokens(text);
+  const chunks = chunkText(optimizedText, { maxTokens: 5500 });
+  // Pass up to 2 chunks for a broader summary without blowing quota
+  const sourceText = chunks.slice(0, 2).map(c => c.content).join("\n\n---\n\n");
 
-    Text:
-    ${text.substring(0, 20000)}
-    `;
+  const prompt = PROMPTS.SUMMARY + sourceText;
 
   try {
-    const result = await generateAIContent({
+    const result = await generateAIResponse({
       taskType: AI_TASK.SUMMARY,
       prompt,
     });
@@ -233,9 +221,9 @@ Student's Question: ${question}
 
 Answer:`;
 
-    const result = await generateAIContent({
+    const result = await generateAIResponse({
       taskType: AI_TASK.CHAT,
-      prompt,
+      prompt: optimizeTextTokens(prompt),
     });
 
     return result.text || "Sorry, I couldn't generate an answer. Please try again.";
@@ -253,15 +241,19 @@ Answer:`;
  */
 
 export const explainConcept = async (concept, context) => {
+  const optimizedText = optimizeTextTokens(context);
+  const chunks = chunkText(optimizedText, { maxTokens: 3000 });
+  const sourceText = chunks[0].content;
+
   const prompt = `Explain the concept of "${concept}" based on the following context.
     Provide a clear, educational explanation that's easy to understand.
     Include examples if relevant.
 
     Context:
-    ${context.substring(0, 10000)}`;
+    ${sourceText}`;
 
   try {
-    const result = await generateAIContent({
+    const result = await generateAIResponse({
       taskType: AI_TASK.EXPLAIN_CONCEPT,
       prompt,
     });
