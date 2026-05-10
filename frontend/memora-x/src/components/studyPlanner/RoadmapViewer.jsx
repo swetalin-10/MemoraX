@@ -14,6 +14,19 @@ import {
 import studyPlannerService from "../../services/studyPlannerService";
 import toast from "react-hot-toast";
 
+// Extract a clean, short duration label from AI-generated text
+const formatDuration = (raw) => {
+  if (!raw) return "N/A";
+  const m = raw.match(/(\d+)\s*(days?|weeks?|months?)/i);
+  if (m) {
+    const n = m[1];
+    const unit = m[2].charAt(0).toUpperCase() + m[2].slice(1).toLowerCase();
+    return `${n} ${unit}`;
+  }
+  // Fallback: truncate to first 16 chars
+  return raw.length > 16 ? raw.slice(0, 16) + "…" : raw;
+};
+
 const RoadmapViewer = ({ planner, onUpdate }) => {
   const [expandedWeeks, setExpandedWeeks] = useState(
     planner.studyPlan?.reduce((acc, _, i) => ({ ...acc, [i]: true }), {}) || {}
@@ -65,9 +78,9 @@ const RoadmapViewer = ({ planner, onUpdate }) => {
   const progressPercent = totalWeeks > 0 ? Math.round((completedCount / totalWeeks) * 100) : 0;
 
   return (
-    <div className="h-full overflow-y-auto pr-3 custom-scrollbar pb-24">
+    <div className="pb-24">
       {/* Premium Dashboard Summary Card */}
-      <div className="shrink-0 bg-[#0a0a0a] border border-white/[0.06] rounded-2xl p-6 mb-8 shadow-sm flex flex-col lg:flex-row gap-8 relative overflow-hidden">
+      <div className="shrink-0 bg-[#0a0a0a] border border-white/[0.06] rounded-2xl p-5 sm:p-6 mb-8 shadow-sm flex flex-col lg:flex-row gap-6 lg:gap-8 relative overflow-hidden">
         {/* Glow Effect */}
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/[0.03] rounded-full blur-[100px] -mr-40 -mt-40 pointer-events-none"></div>
 
@@ -98,27 +111,27 @@ const RoadmapViewer = ({ planner, onUpdate }) => {
         </div>
 
         {/* Right Side: Stacked Stat Widgets */}
-        <div className="flex flex-row lg:flex-col gap-3 shrink-0 lg:w-56">
+        <div className="flex flex-row lg:flex-col gap-3 shrink-0 lg:w-48">
           {/* Duration Widget */}
-          <div className="flex-1 lg:flex-none flex items-center justify-between p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.05] shadow-sm">
-            <div className="flex items-center gap-2.5">
-              <div className="p-1.5 bg-neutral-900 rounded-md border border-neutral-800">
+          <div className="flex-1 lg:flex-none p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.05] shadow-sm">
+            <div className="flex items-center gap-2 mb-1.5">
+              <div className="p-1.5 bg-neutral-900 rounded-md border border-neutral-800 shrink-0">
                 <Clock className="w-3.5 h-3.5 text-primary/90" />
               </div>
               <span className="text-xs font-medium text-neutral-400">Duration</span>
             </div>
-            <span className="text-sm font-semibold text-white">{planner.estimatedDuration || "N/A"}</span>
+            <p className="text-sm font-semibold text-white truncate">{formatDuration(planner.estimatedDuration)}</p>
           </div>
 
           {/* Difficulty Widget */}
-          <div className="flex-1 lg:flex-none flex items-center justify-between p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.05] shadow-sm">
-            <div className="flex items-center gap-2.5">
-              <div className="p-1.5 bg-neutral-900 rounded-md border border-neutral-800">
+          <div className="flex-1 lg:flex-none p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.05] shadow-sm">
+            <div className="flex items-center gap-2 mb-1.5">
+              <div className="p-1.5 bg-neutral-900 rounded-md border border-neutral-800 shrink-0">
                 <Target className="w-3.5 h-3.5 text-primary/90" />
               </div>
               <span className="text-xs font-medium text-neutral-400">Difficulty</span>
             </div>
-            <span className="text-sm font-semibold text-white capitalize">{planner.difficulty || "Mixed"}</span>
+            <p className="text-sm font-semibold text-white capitalize truncate">{planner.difficulty || "Mixed"}</p>
           </div>
         </div>
       </div>
