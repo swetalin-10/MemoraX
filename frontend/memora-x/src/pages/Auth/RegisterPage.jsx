@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import authService from "../../services/authService";
@@ -16,6 +16,67 @@ const RegisterPage = () => {
 
   const navigate = useNavigate();
   const { login } = useAuth();
+  const googleButtonRef = useRef(null);
+
+  useEffect(() => {
+    // Dynamically load the Google Identity Services script
+    const loadGoogleScript = () => {
+      if (window.google) {
+        initializeGoogleAuth();
+        return;
+      }
+      const script = document.createElement("script");
+      script.src = "https://accounts.google.com/gsi/client";
+      script.async = true;
+      script.defer = true;
+      script.onload = initializeGoogleAuth;
+      document.body.appendChild(script);
+    };
+
+    const initializeGoogleAuth = () => {
+      const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+      if (!clientId) {
+        console.warn("VITE_GOOGLE_CLIENT_ID is missing. Google auth will not work.");
+        return;
+      }
+
+      window.google.accounts.id.initialize({
+        client_id: clientId,
+        callback: handleGoogleResponse,
+      });
+
+      if (googleButtonRef.current) {
+        window.google.accounts.id.renderButton(googleButtonRef.current, {
+          theme: "outline",
+          size: "large",
+          width: "100%",
+          text: "signup_with",
+          shape: "rectangular",
+          logo_alignment: "center",
+        });
+      }
+    };
+
+    loadGoogleScript();
+  }, []);
+
+  const handleGoogleResponse = async (response) => {
+    setError("");
+    setLoading(true);
+    try {
+      const { token, user } = await authService.googleLogin(response.credential);
+      login(user, token);
+      toast.success("Registered successfully with Google!");
+      navigate("/dashboard");
+    } catch (err) {
+      setError(
+        err.message || "Failed to register with Google. Please try again."
+      );
+      toast.error(err.message || "Failed to register with Google.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -180,6 +241,20 @@ const RegisterPage = () => {
                 <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
               )}
             </Button>
+
+            {/* Divider */}
+            <div className="relative flex items-center my-6">
+              <div className="flex-grow border-t border-neutral-700"></div>
+              <span className="flex-shrink-0 mx-4 text-neutral-400 text-xs font-medium uppercase tracking-wider">
+                Or continue with
+              </span>
+              <div className="flex-grow border-t border-neutral-700"></div>
+            </div>
+
+            {/* Google Button Container */}
+            <div className="flex justify-center w-full mt-2">
+              <div ref={googleButtonRef} className="flex justify-center min-h-[44px]" style={{ colorScheme: "light" }}></div>
+            </div>
           </div>
 
           {/* Footer */}

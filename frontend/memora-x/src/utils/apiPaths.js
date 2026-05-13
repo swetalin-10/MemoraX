@@ -11,6 +11,7 @@ export const API_PATHS = {
     UPDATE_PROFILE: "/api/auth/profile",
     CHANGE_PASSWORD: "/api/auth/change-password",
     PROFILE_IMAGE: "/api/auth/profile-image",
+    GOOGLE: "/api/auth/google",
   },
 
   DOCUMENTS: {

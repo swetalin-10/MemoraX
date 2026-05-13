@@ -63,6 +63,7 @@ const ProfilePage = () => {
   const [showCurrentPw, setShowCurrentPw] = useState(false);
   const [showNewPw, setShowNewPw] = useState(false);
   const [showConfirmPw, setShowConfirmPw] = useState(false);
+  const [imgError, setImgError] = useState(false);
 
   // ── Fetch profile ──
   const fetchProfile = useCallback(async () => {
@@ -91,6 +92,12 @@ const ProfilePage = () => {
     fetchProfile();
     fetchNotifSettings();
   }, [fetchProfile]);
+
+  // Reset imgError if avatar changes
+  const avatarUrl = imagePreview || profile?.profileImage;
+  useEffect(() => {
+    setImgError(false);
+  }, [avatarUrl]);
 
   // ── Fetch notification settings ──
   const fetchNotifSettings = async () => {
@@ -264,8 +271,6 @@ const ProfilePage = () => {
     });
   };
 
-  const avatarUrl = imagePreview || profile?.profileImage;
-
   // ── Loading state ──
   if (pageLoading) {
     return (
@@ -300,8 +305,13 @@ const ProfilePage = () => {
               title={!imageLoading ? "Change Photo" : undefined}
               id="profile-avatar"
             >
-              {avatarUrl ? (
-                <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
+              {avatarUrl && !imgError ? (
+                <img 
+                  src={avatarUrl} 
+                  alt="Profile" 
+                  className="w-full h-full object-cover" 
+                  onError={() => setImgError(true)}
+                />
               ) : (
                 <div className="w-full h-full bg-gradient-to-br from-primary to-primary-dark text-white flex items-center justify-center text-xl font-bold select-none">
                   {profile?.username?.[0]?.toUpperCase() || "U"}

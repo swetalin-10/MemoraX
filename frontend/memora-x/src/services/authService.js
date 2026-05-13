@@ -13,6 +13,17 @@ const login = async (email, password) => {
   }
 };
 
+const googleLogin = async (credential) => {
+  try {
+    const response = await axiosInstance.post(API_PATHS.AUTH.GOOGLE, {
+      credential,
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || { message: "Google login failed" };
+  }
+};
+
 const register = async (username, email, password) => {
   try {
     const response = await axiosInstance.post(API_PATHS.AUTH.REGISTER, {
@@ -78,6 +89,7 @@ const changeProfileImage = async (formData) => {
 
 const authService = {
   login,
+  googleLogin,
   register,
   getProfile,
   updateProfile,

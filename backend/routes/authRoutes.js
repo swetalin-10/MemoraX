@@ -3,6 +3,7 @@ import { body } from 'express-validator';
 import {
     register,
     login,
+    googleAuth,
     getProfile,
     getUserPublicProfile,
     updateProfile,
@@ -41,6 +42,7 @@ const loginValidation = [
 // Public routes
 router.post('/register', registerValidation, register);
 router.post('/login', loginValidation, login);
+router.post('/google', googleAuth);
 
 // Protected routes 
 router.get('/me', protect, getProfile); // alias for auth check on app load

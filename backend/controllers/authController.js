@@ -1,5 +1,8 @@
 import jwt from "jsonwebtoken";
+import { OAuth2Client } from "google-auth-library";
 import User from "../models/userModel.js";
+
+const googleClient = new OAuth2Client();
 
 // Generate JWT token
 const generateToken = (id) => {
@@ -108,6 +111,112 @@ export const login = async (req, res, next) => {
       },
       token,
       message: "User logged in successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc  Authenticate with Google
+// @route POST /api/auth/google
+// @access Public
+export const googleAuth = async (req, res, next) => {
+  try {
+    const { credential } = req.body;
+
+    if (!credential) {
+      return res.status(400).json({
+        success: false,
+        error: "Google credential is required",
+        statusCode: 400,
+      });
+    }
+
+    // Verify the Google ID token server-side
+    let ticket;
+    try {
+      ticket = await googleClient.verifyIdToken({
+        idToken: credential,
+        audience: process.env.GOOGLE_CLIENT_ID,
+      });
+    } catch (verifyError) {
+      console.error("Google token verification failed:", verifyError.message);
+      return res.status(401).json({
+        success: false,
+        error: "Invalid Google token",
+        statusCode: 401,
+      });
+    }
+
+    const payload = ticket.getPayload();
+    const { sub: googleId, email, name, picture } = payload;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        error: "Google account does not have an email address",
+        statusCode: 400,
+      });
+    }
+
+    // Check if user already exists by email
+    let user = await User.findOne({ email: email.toLowerCase() });
+
+    if (user) {
+      // Existing user — link Google ID if not already set
+      if (!user.googleId) {
+        user.googleId = googleId;
+        if (!user.profileImage && picture) {
+          user.profileImage = picture;
+        }
+        await user.save();
+      }
+    } else {
+      // New user — create account
+      // Generate a unique username from Google name
+      let baseUsername = (name || email.split("@")[0])
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, "")
+        .substring(0, 20);
+
+      if (baseUsername.length < 3) {
+        baseUsername = "user" + baseUsername;
+      }
+
+      let username = baseUsername;
+      let usernameExists = await User.findOne({ username });
+      let attempts = 0;
+
+      while (usernameExists && attempts < 10) {
+        username = baseUsername + Math.floor(Math.random() * 9999);
+        usernameExists = await User.findOne({ username });
+        attempts++;
+      }
+
+      user = await User.create({
+        username,
+        email: email.toLowerCase(),
+        googleId,
+        authProvider: "google",
+        profileImage: picture || null,
+      });
+    }
+
+    // Generate MemoraX JWT using the same existing function
+    const token = generateToken(user._id);
+
+    res.status(200).json({
+      success: true,
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        profileImage: user.profileImage,
+        bio: user.bio || "",
+        createdAt: user.createdAt,
+      },
+      token,
+      message: "Google authentication successful",
     });
   } catch (error) {
     next(error);
@@ -270,6 +379,15 @@ export const changePassword = async (req, res, next) => {
     }
 
     const user = await User.findById(req.user.id).select("+password");
+
+    // Google-only users cannot change password
+    if (user.authProvider === "google" && !user.password) {
+      return res.status(400).json({
+        success: false,
+        error: "Password change is not available for Google-authenticated accounts",
+        statusCode: 400,
+      });
+    }
 
     // check current password
     const isMatch = await user.comparePassword(currentPassword);
