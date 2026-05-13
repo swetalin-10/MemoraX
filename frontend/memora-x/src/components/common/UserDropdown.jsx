@@ -9,8 +9,14 @@ import {
 
 const UserDropdown = ({ user, onLogout }) => {
   const [open, setOpen] = useState(false);
+  const [imgError, setImgError] = useState(false);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
+
+  // Reset imgError if user changes
+  useEffect(() => {
+    setImgError(false);
+  }, [user?.id, user?.profileImage]);
 
   // Close on click outside
   useEffect(() => {
@@ -63,10 +69,11 @@ const UserDropdown = ({ user, onLogout }) => {
         id="user-dropdown-trigger"
       >
         {/* Avatar */}
-        {user?.profileImage ? (
+        {user?.profileImage && !imgError ? (
           <img
             src={user.profileImage}
             alt={user.name || user.username}
+            onError={() => setImgError(true)}
             className="w-9 h-9 rounded-xl object-cover border border-neutral-700 group-hover:border-neutral-600 transition-colors"
           />
         ) : (
